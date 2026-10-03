@@ -1,0 +1,64 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build project",
+			"type": "shell",
+			"command": "cd \"ai-future-city-simulator\" && npm run build",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": "$tsc",
+			"group": "build"
+		},
+		{
+			"label": "build and lint ai-future-city-simulator",
+			"type": "shell",
+			"command": "cd \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\" && npm run build && npm run lint",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "build and lint root via pwsh semicolons",
+			"type": "shell",
+			"command": "cd \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; npm run build; if ($LASTEXITCODE -eq 0) { npm run lint } else { exit $LASTEXITCODE }",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "build lint status",
+			"type": "shell",
+			"command": "cd \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; npm run build; echo BUILD_EXIT:$LASTEXITCODE; if ($LASTEXITCODE -eq 0) { npm run lint; echo LINT_EXIT:$LASTEXITCODE } else { exit $LASTEXITCODE }",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Build environment card fix",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				".\\ai-future-city-simulator",
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Verify coastal buffer demo",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				".\\ai-future-city-simulator",
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}
