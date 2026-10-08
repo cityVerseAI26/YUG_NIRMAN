@@ -145,21 +145,49 @@ const FEATURED_CITIES = [
 ].slice(0, MAX_FEATURED_IMAGES);
 
 const VISIT_COUNT_KEY = "city-simulator-browser-visits";
-const VISIT_SESSION_KEY = "city-simulator-visit-session";
+const ACTIVE_TABS_KEY = "city-simulator-active-tabs";
 const ACTIVE_VISITS_CHANNEL = "city-simulator-active-visits";
 
 function recordBrowserVisit() {
   try {
     const previousVisits = Number(window.localStorage.getItem(VISIT_COUNT_KEY)) || 0;
-    if (window.sessionStorage.getItem(VISIT_SESSION_KEY)) return previousVisits;
-
     const nextVisits = previousVisits + 1;
     window.localStorage.setItem(VISIT_COUNT_KEY, String(nextVisits));
-    window.sessionStorage.setItem(VISIT_SESSION_KEY, "active");
     return nextVisits;
   } catch {
     return 1;
   }
+}
+
+function getActiveTabsCount(currentTabId) {
+  try {
+    const raw = window.localStorage.getItem(ACTIVE_TABS_KEY);
+    const tabs = raw ? JSON.parse(raw) : {};
+    const now = Date.now();
+    const cleanTabs = {};
+    for (const [id, time] of Object.entries(tabs)) {
+      if (now - Number(time) < 8000) {
+        cleanTabs[id] = time;
+      }
+    }
+    if (currentTabId) {
+      cleanTabs[currentTabId] = now;
+    }
+    window.localStorage.setItem(ACTIVE_TABS_KEY, JSON.stringify(cleanTabs));
+    return Math.max(1, Object.keys(cleanTabs).length);
+  } catch {
+    return 1;
+  }
+}
+
+function removeActiveTab(currentTabId) {
+  try {
+    const raw = window.localStorage.getItem(ACTIVE_TABS_KEY);
+    if (!raw) return;
+    const tabs = JSON.parse(raw);
+    delete tabs[currentTabId];
+    window.localStorage.setItem(ACTIVE_TABS_KEY, JSON.stringify(tabs));
+  } catch {}
 }
 
 function formatDuration(totalSeconds) {
@@ -171,7 +199,7 @@ function formatDuration(totalSeconds) {
 export default function LandingPage() {
   const { isLoggedIn, logout } = useAuth();
   const prefersReducedMotion = useReducedMotion();
-  const [browserVisitCount, setBrowserVisitCount] = useState(0);
+  const [browserVisitCount, setBrowserVisitCount] = useState(1);
   const [pageSeconds, setPageSeconds] = useState(0);
   const [activeVisitCount, setActiveVisitCount] = useState(1);
   const [heroSlides, setHeroSlides] = useState([]);
@@ -210,63 +238,90 @@ export default function LandingPage() {
   }, [prefersReducedMotion]);
 
   useEffect(() => {
-    setBrowserVisitCount(recordBrowserVisit());
+    const tabId = `tab_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
+    // 1. Record visit count (increments on every reload / visit)
+    const initialVisits = recordBrowserVisit();
+    setBrowserVisitCount(initialVisits);
+
+    // 2. Register current tab in localStorage active registry
+    const initialActive = getActiveTabsCount(tabId);
+    setActiveVisitCount(initialActive);
+
+    // 3. Track visit duration
     const startedAt = Date.now();
     const durationTimer = window.setInterval(() => {
       setPageSeconds(Math.floor((Date.now() - startedAt) / 1000));
     }, 1000);
-    const handleVisitCountChange = (event) => {
-      if (event.key === VISIT_COUNT_KEY) {
-        setBrowserVisitCount(Number(event.newValue) || 0);
+
+    // 4. Heartbeat keeping this tab active in localStorage
+    const presenceTimer = window.setInterval(() => {
+      const currentActive = getActiveTabsCount(tabId);
+      setActiveVisitCount(currentActive);
+    }, 2500);
+
+    // 5. Instant multi-tab synchronization via storage events
+    const handleStorageChange = (event) => {
+      if (event.key === ACTIVE_TABS_KEY) {
+        try {
+          const tabs = JSON.parse(event.newValue || "{}");
+          const now = Date.now();
+          const valid = Object.values(tabs).filter((t) => now - Number(t) < 8000);
+          setActiveVisitCount(Math.max(1, valid.length));
+        } catch {}
+      } else if (event.key === VISIT_COUNT_KEY) {
+        const val = Number(event.newValue) || 1;
+        setBrowserVisitCount(val);
       }
     };
-    window.addEventListener("storage", handleVisitCountChange);
+    window.addEventListener("storage", handleStorageChange);
 
-    if (typeof BroadcastChannel === "undefined") {
-      return () => {
-        window.clearInterval(durationTimer);
-        window.removeEventListener("storage", handleVisitCountChange);
-      };
+    // 6. Instant BroadcastChannel ping-pong
+    let channel = null;
+    if (typeof BroadcastChannel !== "undefined") {
+      try {
+        channel = new BroadcastChannel(ACTIVE_VISITS_CHANNEL);
+        channel.onmessage = (event) => {
+          const msg = event.data;
+          if (!msg || msg.tabId === tabId) return;
+
+          if (msg.type === "ping") {
+            // Another tab opened: reply immediately so they see us instantly
+            channel.postMessage({ type: "pong", tabId });
+            setActiveVisitCount(getActiveTabsCount(tabId));
+          } else if (msg.type === "pong" || msg.type === "leave") {
+            setActiveVisitCount(getActiveTabsCount(tabId));
+          }
+        };
+        // Announce our presence to all existing tabs
+        channel.postMessage({ type: "ping", tabId });
+      } catch {}
     }
 
-    const channel = new BroadcastChannel(ACTIVE_VISITS_CHANNEL);
-    const visitId = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-    const activeVisits = new Map([[visitId, Date.now()]]);
-    const handlePresenceMessage = (event) => {
-      const message = event.data;
-      if (!message?.id || message.id === visitId) return;
-
-      if (message.type === "leave") {
-        activeVisits.delete(message.id);
-      } else if (message.type === "heartbeat") {
-        activeVisits.set(message.id, Date.now());
+    // 7. Cleanup tab on close or navigation
+    const handleUnload = () => {
+      removeActiveTab(tabId);
+      if (channel) {
+        try {
+          channel.postMessage({ type: "leave", tabId });
+        } catch {}
       }
-      setActiveVisitCount(activeVisits.size);
     };
-    channel.addEventListener("message", handlePresenceMessage);
-
-    const sendHeartbeat = () => {
-      const now = Date.now();
-      for (const [id, lastSeen] of activeVisits) {
-        if (now - lastSeen > 10000) activeVisits.delete(id);
-      }
-      activeVisits.set(visitId, now);
-      channel.postMessage({ type: "heartbeat", id: visitId });
-      setActiveVisitCount(activeVisits.size);
-    };
-    sendHeartbeat();
-    const presenceTimer = window.setInterval(sendHeartbeat, 3000);
-    const leavePage = () => channel.postMessage({ type: "leave", id: visitId });
-    window.addEventListener("pagehide", leavePage);
+    window.addEventListener("pagehide", handleUnload);
+    window.addEventListener("beforeunload", handleUnload);
 
     return () => {
       window.clearInterval(durationTimer);
       window.clearInterval(presenceTimer);
-      window.removeEventListener("storage", handleVisitCountChange);
-      window.removeEventListener("pagehide", leavePage);
-      leavePage();
-      channel.close();
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("pagehide", handleUnload);
+      window.removeEventListener("beforeunload", handleUnload);
+      handleUnload();
+      if (channel) {
+        try {
+          channel.close();
+        } catch {}
+      }
     };
   }, []);
 
@@ -333,8 +388,20 @@ export default function LandingPage() {
   );
 
   const usageStats = [
-    { label: "Active visits in this browser", value: activeVisitCount, detail: "Live across open tabs", icon: Users, color: "#a78bfa" },
-    { label: "Visits on this browser", value: browserVisitCount, detail: "Updates as visits begin", icon: Eye, color: "#38bdf8" },
+    {
+      label: "Active visits in this browser",
+      value: activeVisitCount,
+      detail: activeVisitCount > 1 ? `${activeVisitCount} open tabs in sync` : "Live across open tabs",
+      icon: Users,
+      color: "#a78bfa",
+    },
+    {
+      label: "Visits on this browser",
+      value: browserVisitCount,
+      detail: "Increments on each reload & visit",
+      icon: Eye,
+      color: "#38bdf8",
+    },
     { label: "Time on this visit", value: formatDuration(pageSeconds), detail: "Updates every second", icon: Clock3, color: "#2dd4bf" },
     { label: "Simulator tools", value: NAVIGATION_ITEMS.length, detail: "Current app catalog", icon: PanelsTopLeft, color: "#22d3ee" },
     { label: "City models", value: Object.keys(CITIES).length, detail: "Current city catalog", icon: MapPin, color: "#34d399" },
