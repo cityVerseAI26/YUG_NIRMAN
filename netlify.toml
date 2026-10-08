@@ -5,6 +5,15 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  VITE_DATA_API_URL = "/api/proxy"
+
+[functions]
+  directory = "netlify/functions"
+
+[[redirects]]
+  from = "/api/proxy/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
 
 [[redirects]]
   from = "/*"
