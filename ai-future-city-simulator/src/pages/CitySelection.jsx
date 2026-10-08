@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { Building2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Building2, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import BrandMark from "../components/common/BrandMark";
 import { CITIES } from "../data/cityData";
 import { useCity } from "../context/CityContext";
+import { useAuth } from "../context/AuthContext";
 
 const CITY_OPTIONS = Object.values(CITIES);
 
@@ -11,6 +12,7 @@ export default function CitySelection() {
   const navigate = useNavigate();
   const location = useLocation();
   const { setSelectedCity } = useCity();
+  const { currentUser, logout } = useAuth();
   const [cityImages, setCityImages] = useState({});
   const [searchText, setSearchText] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("all");
@@ -83,6 +85,11 @@ export default function CitySelection() {
     navigate(returnPath, { replace: true });
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate("/", { replace: true });
+  };
+
   return (
     <main className="min-h-screen bg-[#030d1a] text-slate-100 px-4 py-3 sm:px-8 sm:py-6 relative overflow-hidden">
       <div className="absolute inset-0 bg-grid-cyber opacity-60 pointer-events-none" aria-hidden="true" />
@@ -99,13 +106,30 @@ export default function CitySelection() {
               <small className="text-[10px] text-slate-500 tracking-[0.16em]">YUG NIRMAN</small>
             </span>
           </Link>
-          <span className="rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-xs text-cyan-200">Public demo · read-only</span>
+          <div className="flex items-center gap-3">
+            {currentUser && (
+              <span className="hidden sm:inline-flex items-center gap-2 text-xs text-slate-300">
+                <span className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 flex items-center justify-center font-bold text-[11px]">
+                  {currentUser.avatar || "US"}
+                </span>
+                <span className="font-medium">{currentUser.name || currentUser.email}</span>
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-700 bg-slate-900/70 text-slate-300 hover:text-white hover:border-cyan-500/50 transition-colors text-sm cursor-pointer"
+            >
+              <LogOut size={16} />
+              Log out
+            </button>
+          </div>
         </header>
 
         <section className="text-center mb-4">
           <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white">Choose a city</h1>
           <p className="mt-1 text-sm text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Choose from {CITY_OPTIONS.length} cities in India and around the world.
+            {currentUser?.name ? `Welcome, ${currentUser.name}. ` : ""}Choose from {CITY_OPTIONS.length} cities in India and around the world.
           </p>
         </section>
 

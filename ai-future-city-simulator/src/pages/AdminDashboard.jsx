@@ -771,7 +771,7 @@ export default function AdminDashboard() {
                 Close
               </button>
             </div>
-            <MessagesCenter />
+            <MessagesCenter onClose={() => setMessagesOpen(false)} />
           </div>
         </div>
       )}

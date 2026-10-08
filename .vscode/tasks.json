@@ -59,6 +59,2624 @@
 			],
 			"isBackground": false,
 			"problemMatcher": []
+		},
+		{
+			"label": "Run ai-future-city-simulator dev server",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				".\\ai-future-city-simulator",
+				"run",
+				"dev",
+				"--",
+				"--host",
+				"0.0.0.0"
+			],
+			"isBackground": true,
+			"group": "build"
+		},
+		{
+			"label": "Verify app build with npm prefix",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				".\\ai-future-city-simulator",
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Verify lint with npm prefix",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				".\\ai-future-city-simulator",
+				"run",
+				"lint"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "build app via cmd",
+			"type": "shell",
+			"command": "cmd /d /s /c \"cd /d \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\" && npm run build\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Build dashboard",
+			"type": "shell",
+			"command": "cd \"ai-future-city-simulator\" && npm run build",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "build-ai-future-city-simulator",
+			"type": "shell",
+			"command": "cd /d \"C:/Users/ADMIN/OneDrive/Desktop/city/ai-future-city-simulator\" && npm run build",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Build app",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; npm run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Validate traffic flow build",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; npm run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Validate traffic live-state build",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; npm run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Validate self-traffic fallback build",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; npm run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Run app dev server",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				".\\ai-future-city-simulator",
+				"run",
+				"dev",
+				"--",
+				"--host",
+				"0.0.0.0"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Build city simulator",
+			"type": "shell",
+			"command": "cmd /d /s /c \"cd /d \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\" & npm run build\"",
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "echo check",
+			"type": "shell",
+			"command": "echo",
+			"args": [
+				"hello"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "build with status",
+			"type": "shell",
+			"command": "cmd /d /s /c \"cd /d \\\"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\\" & npm run build & echo BUILD_EXIT:%ERRORLEVEL%\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "build with npm prefix",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				".\\ai-future-city-simulator",
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "build-app",
+			"type": "shell",
+			"command": "cd \"ai-future-city-simulator\" && npm run build",
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Start City Simulator Dev Server",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"dev",
+				"--",
+				"--host",
+				"0.0.0.0"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Restart City Simulator Fresh",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"dev",
+				"--",
+				"--host",
+				"0.0.0.0",
+				"--port",
+				"5174",
+				"--force"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Check Cloudflare Wrangler Auth",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"--yes",
+				"wrangler",
+				"whoami"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Deploy City Data Worker",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"--yes",
+				"wrangler",
+				"deploy",
+				"--config",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\wrangler.toml"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Check Worker Secret Names",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"--yes",
+				"wrangler",
+				"secret",
+				"list",
+				"--config",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\wrangler.toml"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Remove Misnamed Exposed Secret",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"--yes",
+				"wrangler",
+				"secret",
+				"delete",
+				"59a4b09kXZvmuUvOUDWeK4HqohzDdmbS",
+				"--config",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\wrangler.toml"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Verify Worker Traffic Secret State",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"--yes",
+				"wrangler",
+				"secret",
+				"list",
+				"--config",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\wrangler.toml"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Set TomTom Worker Secret",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"--yes",
+				"wrangler",
+				"secret",
+				"put",
+				"TOMTOM_API_KEY",
+				"--config",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\wrangler.toml"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Confirm TomTom Secret Binding",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"--yes",
+				"wrangler",
+				"secret",
+				"list",
+				"--config",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\wrangler.toml"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Test Cloudflare Data Worker",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"--test",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\src\\index.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Update City Data Worker",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"--yes",
+				"wrangler",
+				"deploy",
+				"--config",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\wrangler.toml"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Build City Dashboard",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Check Worker Local CORS",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-i",
+				"-H",
+				"Origin: http://localhost:5173",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/status"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Check Worker Site CORS",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-i",
+				"-H",
+				"Origin: https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/status"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Deploy Local CORS Origins",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"--yes",
+				"wrangler",
+				"deploy",
+				"--config",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\wrangler.toml"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Test Worker After CORS Update",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"--test",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\src\\index.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Verify Port 5174 CORS",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-i",
+				"-H",
+				"Origin: http://localhost:5174",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/status"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Verify TomTom Endpoint Error",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"-H",
+				"Origin: http://localhost:5173",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/traffic/flow?lat=19.076%26lon=72.8777"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Verify Local Origin CORS",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-i",
+				"-H",
+				"Origin: http://localhost:5173",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/status"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Test Live TomTom Flow",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"--get",
+				"-i",
+				"-H",
+				"Origin: http://localhost:5173",
+				"--data-urlencode",
+				"lat=19.076",
+				"--data-urlencode",
+				"lon=72.8777",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/traffic/flow"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Build After Worker Error Fix",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Lint After Worker Error Fix",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"lint"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Build OSM Proxy App",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Test OSM Proxy Worker",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"--test",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\src\\index.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Verify OSM Worker Proxy",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"--test",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\src\\index.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Deploy OSM Data Worker",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"wrangler",
+				"deploy",
+				"--config",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\wrangler.toml"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Verify Deployed OSM Endpoints",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"-e",
+				"const base='https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev'; const origin='https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev'; for (const route of ['/api/status','/api/osm/features?lat=19.076&lon=72.8777','/api/osm/roads?lat=19.076&lon=72.8777']) { const response=await fetch(base+route,{headers:{Origin:origin}}); const text=await response.text(); let result; try { const data=JSON.parse(text); result={...data,elements:Array.isArray(data.elements)?data.elements.length:undefined}; } catch { result=text.slice(0,300); } console.log(route,response.status,JSON.stringify(result)); }"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Verify Worker OSM Responses",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"-e",
+				"const base=\"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev\"; const origin=\"https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev\"; for (const type of [\"status\",\"features\",\"roads\"]) { const url=new URL(type===\"status\"?\"/api/status\":\"/api/osm/\"+type,base); if(type!==\"status\"){url.searchParams.set(\"lat\",\"19.076\");url.searchParams.set(\"lon\",\"72.8777\");} const response=await fetch(url,{headers:{Origin:origin}}); const data=await response.json(); console.log(type,response.status,JSON.stringify({...data,elements:Array.isArray(data.elements)?data.elements.length:undefined})); }"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Probe Deployed OSM Proxy",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"--max-time",
+				"25",
+				"-H",
+				"Origin: https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev",
+				"--get",
+				"--data-urlencode",
+				"lat=19.076",
+				"--data-urlencode",
+				"lon=72.8777",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/osm/features"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Probe OSM Roads Proxy",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"--max-time",
+				"25",
+				"-H",
+				"Origin: https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev",
+				"--get",
+				"--data-urlencode",
+				"lat=19.076",
+				"--data-urlencode",
+				"lon=72.8777",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/osm/roads"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Test Sequential OSM Failover",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"--test",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\src\\index.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Deploy Sequential OSM Proxy",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"wrangler",
+				"deploy",
+				"--config",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\wrangler.toml"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Verify OSM Worker After Deploy",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"--max-time",
+				"20",
+				"-H",
+				"Origin: https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev",
+				"--get",
+				"--data-urlencode",
+				"lat=19.076",
+				"--data-urlencode",
+				"lon=72.8777",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/osm/features"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Check OSM Proxy Diff",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"diff",
+				"--check"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Probe Overpass API De",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"--max-time",
+				"20",
+				"-H",
+				"Accept: application/json",
+				"-H",
+				"User-Agent: YUG-NIRMAN-CityMap/1.0",
+				"--data-urlencode",
+				"data=[out:json][timeout:5];node(around:100,19.076,72.8777);out;",
+				"https://overpass-api.de/api/interpreter"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Probe Kumi Overpass API",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"--max-time",
+				"20",
+				"-H",
+				"Accept: application/json",
+				"-H",
+				"User-Agent: YUG-NIRMAN-CityMap/1.0",
+				"--data-urlencode",
+				"data=[out:json][timeout:5];node(around:100,19.076,72.8777);out;",
+				"https://overpass.kumi.systems/api/interpreter"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Test OSM Request Fix",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"--test",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\src\\index.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Build Updated City Map",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Deploy OSM Data Proxy",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"wrangler",
+				"deploy",
+				"--config",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\wrangler.toml"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Deploy Updated City Dashboard",
+			"type": "npm",
+			"args": [
+				"run",
+				"deploy"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Publish Updated City App",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"deploy"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Verify OSM Worker Status",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"--max-time",
+				"15",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/status"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Verify Deployed OSM Map Query",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"--max-time",
+				"25",
+				"-H",
+				"Origin: https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev",
+				"--get",
+				"--data-urlencode",
+				"lat=19.076",
+				"--data-urlencode",
+				"lon=72.8777",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/osm/map"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Check OSM Patch Whitespace",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"diff",
+				"--check"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Retest OSM Timeout Logic",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"--test",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\src\\index.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Deploy OSM Proxy Timeout Fix",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"wrangler",
+				"deploy",
+				"--config",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\wrangler.toml"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Check Live OSM Map Data",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"--max-time",
+				"30",
+				"-H",
+				"Origin: https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev",
+				"--get",
+				"--data-urlencode",
+				"lat=19.076",
+				"--data-urlencode",
+				"lon=72.8777",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/osm/map"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Final OSM Worker Tests",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"--test",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\src\\index.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Publish OSM Retry Cooldown",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"wrangler",
+				"deploy",
+				"--config",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\wrangler.toml"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Confirm OSM Worker Deployment",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"--max-time",
+				"15",
+				"-H",
+				"Origin: https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/status"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Final Whitespace Check",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"diff",
+				"--check"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Inspect Worktree Changes",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"status",
+				"--short"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Build OSM Offline Fallback",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Lint Map And Worker",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"lint",
+				"--",
+				"src/components/dashboard/LiveCityMap.jsx",
+				"api-worker/src/index.js",
+				"api-worker/src/index.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Lint Offline Map Changes",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"lint",
+				"--",
+				"src/components/dashboard/LiveCityMap.jsx",
+				"api-worker/src/index.js",
+				"api-worker/src/index.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Test Updated OSM Worker",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"--test",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\src\\index.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Deploy OSM Snapshot Fallback",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"deploy"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Deploy OSM Mirror Retry Fix",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"wrangler",
+				"deploy",
+				"--config",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\wrangler.toml"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Probe Deployed OSM Data",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-D",
+				"-",
+				"--max-time",
+				"30",
+				"-o",
+				"NUL",
+				"-H",
+				"Origin: https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev",
+				"--get",
+				"--data-urlencode",
+				"lat=19.076",
+				"--data-urlencode",
+				"lon=72.8777",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/osm/map"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Validate Formatting After Deploy",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"diff",
+				"--check"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Test OSM Timeout And Cache",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"--test",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\src\\index.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Lint OSM Fallback",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"lint",
+				"--",
+				"src/components/dashboard/LiveCityMap.jsx",
+				"api-worker/src/index.js",
+				"api-worker/src/index.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Deploy Final OSM Worker Fix",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"wrangler",
+				"deploy",
+				"--config",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\wrangler.toml"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Deploy Final OSM Map UI",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"deploy"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Verify Final OSM Outage Handling",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"--max-time",
+				"25",
+				"-H",
+				"Origin: https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev",
+				"--get",
+				"--data-urlencode",
+				"lat=19.076",
+				"--data-urlencode",
+				"lon=72.8777",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/osm/map"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Probe OSM Main API",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"--max-time",
+				"20",
+				"https://api.openstreetmap.org/api/0.6/map?bbox=72.86%2C19.06%2C72.89%2C19.09"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Check OSM Main API Bounds",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-o",
+				"NUL",
+				"-w",
+				"HTTP %{http_code} · %{size_download} bytes · %{time_total}s",
+				"--max-time",
+				"25",
+				"https://api.openstreetmap.org/api/0.6/map?bbox=72.832%2C19.031%2C72.923%2C19.121"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Read OSM API Bounds Error",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"--max-time",
+				"15",
+				"https://api.openstreetmap.org/api/0.6/map?bbox=72.832%2C19.031%2C72.923%2C19.121"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Test OSM API Map Tile",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-o",
+				"NUL",
+				"-w",
+				"HTTP %{http_code} · %{size_download} bytes · %{time_total}s",
+				"--max-time",
+				"20",
+				"https://api.openstreetmap.org/api/0.6/map?bbox=72.832%2C19.031%2C72.8775%2C19.076"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Measure Smaller OSM Bounds",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-o",
+				"NUL",
+				"-w",
+				"HTTP %{http_code} · %{size_download} bytes · %{time_total}s",
+				"--max-time",
+				"20",
+				"https://api.openstreetmap.org/api/0.6/map?bbox=72.8664%2C19.065%2C72.889%2C19.0875"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Measure Compact OSM Data",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-o",
+				"NUL",
+				"-w",
+				"HTTP %{http_code} · %{size_download} bytes · %{time_total}s",
+				"--max-time",
+				"20",
+				"https://api.openstreetmap.org/api/0.6/map?bbox=72.872%2C19.0715%2C72.883%2C19.0805"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Check OSM JSON Format",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"--max-time",
+				"20",
+				"https://api.openstreetmap.org/api/0.6/map.json?bbox=72.872%2C19.0715%2C72.883%2C19.0805"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Measure OSM JSON Tile",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-o",
+				"NUL",
+				"-w",
+				"HTTP %{http_code} · %{size_download} bytes · %{time_total}s",
+				"--max-time",
+				"20",
+				"https://api.openstreetmap.org/api/0.6/map.json?bbox=72.872%2C19.0715%2C72.883%2C19.0805"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Measure OSM Two Kilometer Tile",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-o",
+				"NUL",
+				"-w",
+				"HTTP %{http_code} · %{size_download} bytes · %{time_total}s",
+				"--max-time",
+				"20",
+				"https://api.openstreetmap.org/api/0.6/map.json?bbox=72.868%2C19.067%2C72.887%2C19.085"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Test OSM Official API Fallback",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"--test",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\src\\index.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Lint OSM API Fallback",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"lint",
+				"--",
+				"src/components/dashboard/LiveCityMap.jsx",
+				"api-worker/src/index.js",
+				"api-worker/src/index.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Test OSM Main API Fallback",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"--test",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\src\\index.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Build OSM API Fallback",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Deploy Official OSM Fallback",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"wrangler",
+				"deploy",
+				"--config",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\wrangler.toml"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Test Deployed Mumbai Map Data",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"--max-time",
+				"35",
+				"-H",
+				"Origin: https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev",
+				"-w",
+				"\nHTTP %{http_code} · %{size_download} bytes · %{time_total}s",
+				"--get",
+				"--data-urlencode",
+				"lat=19.076",
+				"--data-urlencode",
+				"lon=72.8777",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/osm/map"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Retest OSM Fallback Endpoint",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"--max-time",
+				"35",
+				"-H",
+				"Origin: https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev",
+				"-H",
+				"Cache-Control: no-cache",
+				"--get",
+				"--data-urlencode",
+				"lat=19.077",
+				"--data-urlencode",
+				"lon=72.879",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/osm/map"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Verify OSM Fallback Success",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-D",
+				"-",
+				"--max-time",
+				"25",
+				"-o",
+				"NUL",
+				"-w",
+				"HTTP %{http_code} · %{size_download} bytes · %{time_total}s",
+				"-H",
+				"Origin: https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev",
+				"--get",
+				"--data-urlencode",
+				"lat=19.077",
+				"--data-urlencode",
+				"lon=72.879",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/osm/map"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Lint OSM Fallback UI",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"lint",
+				"--",
+				"src/components/dashboard/LiveCityMap.jsx",
+				"api-worker/src/index.js",
+				"api-worker/src/index.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Final OSM Worker Unit Tests",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"--test",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\\src\\index.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Publish OSM Fallback UI",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"deploy"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Verify Mumbai Center Fallback",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-D",
+				"-",
+				"--max-time",
+				"30",
+				"-o",
+				"NUL",
+				"-w",
+				"HTTP %{http_code} · %{size_download} bytes · %{time_total}s",
+				"-H",
+				"Origin: https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev",
+				"--get",
+				"--data-urlencode",
+				"lat=19.076",
+				"--data-urlencode",
+				"lon=72.8777",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/osm/map"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Check Mumbai OSM API Live",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-D",
+				"-",
+				"--max-time",
+				"30",
+				"-o",
+				"NUL",
+				"-w",
+				"HTTP %{http_code} · %{size_download} bytes · %{time_total}s",
+				"-H",
+				"Origin: https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev",
+				"--get",
+				"--data-urlencode",
+				"lat=19.076",
+				"--data-urlencode",
+				"lon=72.8777",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/osm/map"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Test Current City Coordinates",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-D",
+				"-",
+				"--max-time",
+				"30",
+				"-o",
+				"NUL",
+				"-w",
+				"HTTP %{http_code} · %{size_download} bytes · %{time_total}s",
+				"-H",
+				"Origin: http://localhost:5173",
+				"--get",
+				"--data-urlencode",
+				"lat=19.2183",
+				"--data-urlencode",
+				"lon=72.9781",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/osm/map"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Build Visible OSM Markers",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Lint Visible Map Changes",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"lint",
+				"--",
+				"src/components/dashboard/LiveCityMap.jsx"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Deploy Map Visibility Improvement",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"deploy"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Check Deployed TomTom Flow",
+			"type": "shell",
+			"command": "curl.exe",
+			"args": [
+				"-sS",
+				"-i",
+				"--max-time",
+				"20",
+				"-H",
+				"Origin: https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev",
+				"--get",
+				"--data-urlencode",
+				"lat=19.2183",
+				"--data-urlencode",
+				"lon=72.9781",
+				"https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/traffic/flow"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Lint TomTom Map Handling",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"lint",
+				"--",
+				"src/components/dashboard/LiveCityMap.jsx"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Build TomTom Error Handling",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Deploy TomTom Failure UX",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator",
+				"run",
+				"deploy"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Check TomTom UX Diff",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"diff",
+				"--check"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Build frontend",
+			"type": "shell",
+			"command": "cd \"ai-future-city-simulator\" && npm run build",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Check git status",
+			"type": "shell",
+			"command": "git --no-pager status --short",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Probe live data worker",
+			"type": "shell",
+			"command": "python -c \"import urllib.request; url='https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/population/world-city?city=Mumbai&country=India&admin=Maharashtra'; r=urllib.request.urlopen(url, timeout=20); print(r.status); print(r.read(400).decode('utf-8','ignore'))\"",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Probe live worker via Python file",
+			"type": "shell",
+			"command": "python \"C:\\Users\\ADMIN\\.copilot\\session-state\\7e2c518e-ccc0-4de6-808c-cbcbf7a614dc\\files\\probe_population.py\"",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Probe worker with localhost origin",
+			"type": "shell",
+			"command": "python \"C:\\Users\\ADMIN\\.copilot\\session-state\\7e2c518e-ccc0-4de6-808c-cbcbf7a614dc\\files\\probe_population.py\"",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate population change",
+			"type": "shell",
+			"command": "cd ai-future-city-simulator && npm run test:worker && npm run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Start local worker",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; npx wrangler dev --config api-worker/wrangler.toml --ip 0.0.0.0 --port 8787",
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Check local population API",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; node -e \"fetch('http://localhost:8787/api/population/us-city?city=Boston&state=Massachusetts').then(async (r) => { console.log('status=' + r.status); const text = await r.text(); console.log(text.slice(0, 220)); }).catch((err) => { console.error(err); process.exit(1); })\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Probe local population endpoint",
+			"type": "shell",
+			"command": "curl -sS 'http://localhost:8787/api/population/us-city?city=Boston&state=Massachusetts'",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Probe local status",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; node -e \"fetch('http://localhost:8787/api/status').then(r=>r.text()).then(t=>console.log(t))\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Run app",
+			"type": "shell",
+			"command": "cd \"ai-future-city-simulator\" && npm run dev -- --host 0.0.0.0",
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Run app via cmd",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/d",
+				"/s",
+				"/c",
+				"cd /d \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\" & npm run dev -- --host 0.0.0.0"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Run app in cmd",
+			"type": "shell",
+			"command": "& \"$env:ComSpec\"",
+			"args": [
+				"/d",
+				"/s",
+				"/c",
+				"cd /d \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\" & npm run dev -- --host 0.0.0.0"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Run app via full cmd path",
+			"type": "shell",
+			"command": "C:\\Windows\\System32\\cmd.exe",
+			"args": [
+				"/d",
+				"/s",
+				"/c",
+				"cd /d \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\" & npm run dev -- --host 0.0.0.0"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Verify map and population tests",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"ai-future-city-simulator",
+				"run",
+				"test:worker"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Verify all city population estimates",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"ai-future-city-simulator",
+				"run",
+				"test:population"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run map worker tests",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"ai-future-city-simulator",
+				"run",
+				"test:worker"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run city health tests and build",
+			"type": "shell",
+			"command": "bash -lc 'cd /mnt/c/Users/ADMIN/OneDrive/Desktop/city/ai-future-city-simulator && npm run test:city-health && npm run build'",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Run city health tests and build via python",
+			"type": "shell",
+			"command": "cmd /d /s /c \"python -c \\\"import os, subprocess; os.chdir(r'C:\\\\Users\\\\ADMIN\\\\OneDrive\\\\Desktop\\\\city\\\\ai-future-city-simulator'); subprocess.run(['npm', 'run', 'test:city-health'], check=True); subprocess.run(['npm', 'run', 'build'], check=True)\\\"\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Run city-health test and build via powershell",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; npm run test:city-health; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; npm run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Run city health tests and build via cmd",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/d",
+				"/s",
+				"/c",
+				"cd /d \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\" && npm run test:city-health && npm run build"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Run city health tests and build via full cmd path",
+			"type": "shell",
+			"command": "C:\\Windows\\System32\\cmd.exe",
+			"args": [
+				"/d",
+				"/s",
+				"/c",
+				"cd /d \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\" && npm run test:city-health && npm run build"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Run city-health tests and build",
+			"type": "shell",
+			"command": "cd \"ai-future-city-simulator\" && npm run test:city-health && npm run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "city-health+build",
+			"type": "shell",
+			"command": "cmd /d /s /c \"cd /d \"\"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"\" && npm run test:city-health && npm run build\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "city-health-test-build-ps",
+			"type": "shell",
+			"command": "cmd /d /s /c 'cd /d \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\" && npm run test:city-health && npm run build'",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "city-health-build-ps",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; npm run test:city-health; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; npm run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Test and build city health",
+			"type": "shell",
+			"command": "cd \"ai-future-city-simulator\" && npm run test:city-health && npm run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "City health tests and build v2",
+			"type": "shell",
+			"command": "cmd /C \"cd /d \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\" && npm run test:city-health && npm run build\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "City health tests and build v3",
+			"type": "shell",
+			"command": "cd 'C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator'; npm run test:city-health; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; npm run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "city-health tests and build",
+			"type": "shell",
+			"command": "cmd /d /s /c \"cd /d \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\" && npm run test:city-health && npm run build\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "city-health tests and build via cmd",
+			"type": "shell",
+			"command": "cmd /d /s /c \"cd /d \\\"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\\" && npm run test:city-health && npm run build\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Run city-health tests and build in pwsh syntax",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; npm run test:city-health; if ($LASTEXITCODE -eq 0) { npm run build } else { exit $LASTEXITCODE }",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Run city simulator tests and build",
+			"type": "shell",
+			"command": "cd \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\" && npm run test:city-health && npm run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Run city health test and build via cmd",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/d",
+				"/s",
+				"/c",
+				"cd /d \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\" && npm run test:city-health && npm run build"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Run city health test and build via cmdexe",
+			"type": "shell",
+			"command": "C:\\Windows\\System32\\cmd.exe",
+			"args": [
+				"/d",
+				"/s",
+				"/c",
+				"cd /d \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\" && npm run test:city-health && npm run build"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Run city-health tests and build in powershell",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; npm run test:city-health; if ($LASTEXITCODE -eq 0) { npm run build } else { exit $LASTEXITCODE }",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Run city-health tests and build via cmd",
+			"type": "shell",
+			"command": "cmd /d /c \"cd /d \"\"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"\" && npm run test:city-health && npm run build\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Run city-health tests and build powershell",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; npm run test:city-health; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; npm run build; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Run city health tests and build (cmd)",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/d",
+				"/s",
+				"/c",
+				"cd /d \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\" && npm run test:city-health && npm run build"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run city health tests and build (windows cmd)",
+			"type": "shell",
+			"command": "C:\\Windows\\System32\\cmd.exe",
+			"args": [
+				"/d",
+				"/s",
+				"/c",
+				"cd /d \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\" && npm run test:city-health && npm run build"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Inspect Git remote and branch",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"remote",
+				"-v"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check requested GitHub repository",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"ls-remote",
+				"--heads",
+				"git@github.com:cityVerseAI26/YUG_NIRMAN.git"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Verify target remote branch",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-c",
+				"core.sshCommand=ssh -o StrictHostKeyChecking=accept-new",
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"ls-remote",
+				"--heads",
+				"git@github.com:cityVerseAI26/YUG_NIRMAN.git"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Review pending project diff",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"diff",
+				"--stat"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check commit identity",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"config",
+				"user.name"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check commit email",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"config",
+				"user.email"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Stage intended project changes",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"add",
+				"-A",
+				"--",
+				".",
+				":(exclude).wrangler",
+				":(exclude).wrangler/**",
+				":(exclude)vite-dev.log"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Stage project worktree",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"add",
+				"-A",
+				"--",
+				"."
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Unstage local runtime files",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"restore",
+				"--staged",
+				"--",
+				".wrangler",
+				"vite-dev.log"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check staged whitespace",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"diff",
+				"--cached",
+				"--check"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Review staged file names",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"diff",
+				"--cached",
+				"--name-status"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check excluded runtime files",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"diff",
+				"--cached",
+				"--name-only",
+				"--",
+				".wrangler",
+				"vite-dev.log"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Summarize staged changes",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"diff",
+				"--cached",
+				"--stat"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Unstage machine-local tasks",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"restore",
+				"--staged",
+				"--",
+				".vscode/tasks.json"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Commit YUG NIRMAN public demo",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"commit",
+				"-m",
+				"Prepare YUG NIRMAN public demo",
+				"-m",
+				"Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Push YUG NIRMAN to GitHub",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"push",
+				"https://github.com/cityVerseAI26/YUG_NIRMAN.git",
+				"HEAD:main"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Stage root README",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"add",
+				"--",
+				"README.md"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Verify README-only staging",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"diff",
+				"--cached",
+				"--name-only"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check README patch formatting",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"diff",
+				"--cached",
+				"--check"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Commit GitHub README",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"commit",
+				"-m",
+				"Add comprehensive YUG NIRMAN README",
+				"-m",
+				"Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Push README to GitHub",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"push",
+				"https://github.com/cityVerseAI26/YUG_NIRMAN.git",
+				"HEAD:main"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Stage Pages enablement fix",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"add",
+				"--",
+				".github/workflows/deploy.yml"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Commit Pages enablement fix",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-C",
+				"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city",
+				"commit",
+				"-m",
+				"Enable GitHub Pages deployment via Actions",
+				"-m",
+				"Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Install and run city simulator",
+			"type": "shell",
+			"command": "npm --prefix ai-future-city-simulator install && npm --prefix ai-future-city-simulator run dev -- --host 0.0.0.0",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run dev server",
+			"type": "shell",
+			"command": "cd /d C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator && npm run dev -- --host 0.0.0.0",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run dev server 2",
+			"type": "shell",
+			"command": "cmd /c \"cd /d C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator && npm run dev -- --host 0.0.0.0\"",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run dev server 3",
+			"type": "shell",
+			"command": "cmd /c \"cd /d C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator; npm run dev -- --host 0.0.0.0\"",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run dev server 4",
+			"type": "shell",
+			"command": "\"C:\\Windows\\System32\\cmd.exe\" /c \"cd /d C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator && npm run dev -- --host 0.0.0.0\"",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run dev server 5",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; npm run dev -- --host 0.0.0.0",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check Cloudflare Worker access",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\"; npx wrangler whoami",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check Worker changes",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; git status --short -- api-worker/wrangler.toml api-worker/src/index.js api-worker/package.json",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Review Worker origin diff",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; git diff -- api-worker/wrangler.toml",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Inspect Worker deployment",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\"; npx wrangler deployments list --name city-digital-twin-data",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Test Cloudflare Worker",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; npm run test:worker",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Deploy CORS fix to Worker",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\"; npx wrangler deploy",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Deploy Worker with explicit config",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\"; npx wrangler deploy --config wrangler.toml",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Set TomTom API secret",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\"; npx wrangler secret put TOMTOM_API_KEY",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Set data Worker TomTom key",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\"; npx wrangler secret put TOMTOM_API_KEY --config wrangler.toml",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Remove misplaced Worker secret",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\"; npx wrangler secret delete TOMTOM_API_KEY --config wrangler.toml --name ai-future-city-simulator",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check secret delete options",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\"; npx wrangler secret delete --help",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Clean up misplaced secret",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\"; \"y\" | npx wrangler secret delete TOMTOM_API_KEY --config wrangler.toml --name ai-future-city-simulator",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Confirm misplaced secret cleanup",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\"; npx wrangler secret delete TOMTOM_API_KEY --config wrangler.toml --name ai-future-city-simulator",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Remove misplaced secret safely",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\"; Write-Output \"y\" | npx wrangler secret delete TOMTOM_API_KEY --config wrangler.toml --name ai-future-city-simulator",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Verify Worker secrets",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\"; Write-Output \"--- data Worker ---\"; npx wrangler secret list --config wrangler.toml --name city-digital-twin-data; Write-Output \"--- other Worker ---\"; npx wrangler secret list --config wrangler.toml --name ai-future-city-simulator",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Set rotated TomTom key securely",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\"; npx wrangler secret put TOMTOM_API_KEY --config wrangler.toml",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Verify deployed traffic status",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\"; npx wrangler deployments list --config wrangler.toml",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Remove invalid exposed TomTom key",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\"; Write-Output \"y\" | npx wrangler secret delete TOMTOM_API_KEY --config wrangler.toml --name city-digital-twin-data",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Verify data Worker key removed",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\\api-worker\"; npx wrangler secret list --config wrangler.toml --name city-digital-twin-data",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check Netlify CLI auth",
+			"type": "shell",
+			"command": "Set-Location \"C:\\Users\\ADMIN\\OneDrive\\Desktop\\city\\ai-future-city-simulator\"; npx --no-install netlify status",
+			"isBackground": false,
+			"problemMatcher": []
 		}
 	]
 }

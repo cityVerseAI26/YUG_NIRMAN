@@ -18,6 +18,8 @@ const PAGE_LABELS = {
   "/sustainability": "Sustainability",
   "/city-3d": "3D City",
   "/settings": "Settings",
+  "/messages": "Messages & Chat",
+  "/admin-chat": "Admin Messages",
 };
 
 const getHistoryKey = (user) => {

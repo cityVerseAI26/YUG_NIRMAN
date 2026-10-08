@@ -1,0 +1,4 @@
+powershell.cmd
+vite-dev.log
+.wrangler/
+*.bat

@@ -16,7 +16,8 @@
     "test:worker": "node --test api-worker/src/index.test.js",
     "test:population": "node --test src/data/populationEstimates2026.test.js",
     "preview": "npm run build && wrangler dev",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:netlify": "npm run build && npx netlify deploy --prod --dir=dist"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

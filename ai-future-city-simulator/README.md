@@ -1,5 +1,17 @@
 # YUG NIRMAN | AI Future City Simulator
 
+## Netlify deployment
+
+Connect this repository to Netlify and deploy from the repository root. The
+root `netlify.toml` configures the app directory, Node.js 22, the Vite build,
+and a single-page-app fallback so direct links to client-side routes work.
+Netlify will build and publish the site on each push to the connected branch.
+
+The optional live-data API is a separate Cloudflare Worker. After Netlify
+assigns the site its `*.netlify.app` URL, add that exact origin to
+`ALLOWED_ORIGINS` in `api-worker/wrangler.toml` and redeploy the Worker.
+Include the origin for any custom domain too; do not include URL paths.
+
 ## GitHub Pages deployment
 
 The site deploys automatically when changes are pushed to the `main` branch.

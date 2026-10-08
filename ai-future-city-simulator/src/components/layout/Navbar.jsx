@@ -15,8 +15,12 @@ import {
   Car,
   ExternalLink,
   ShieldCheck,
+  LogOut,
+  MessageSquare,
 } from "lucide-react";
 import { useCity } from "../../context/CityContext";
+import { useAuth } from "../../context/AuthContext";
+import useUnreadChatCount from "../../hooks/useUnreadChatCount";
 import { FLAT_NAVIGATION_ITEMS } from "./Sidebar";
 
 export const Navbar = () => {
@@ -39,6 +43,9 @@ export const Navbar = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
+
+  const { currentUser, logout } = useAuth();
+  const unreadMessageCount = useUnreadChatCount();
 
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -109,6 +116,8 @@ export const Navbar = () => {
         return { title: "Simulator Settings", subtitle: "Local scenario and display preferences" };
       case "/history":
         return { title: "My History", subtitle: "Your recent city simulator activity on this browser" };
+      case "/messages":
+        return { title: "Messages & Community Chat", subtitle: "Citizen support inquiries and administration discussions" };
       default:
         return { title: current.label, subtitle: "City simulator sample-data module" };
     }
@@ -381,7 +390,7 @@ export const Navbar = () => {
           {/* Day / night display toggle */}
           <button
             onClick={() => setDisplayMode(displayMode === "night" ? "day" : "night")}
-            className="p-2 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 text-slate-400 hover:text-cyan-300 transition-all duration-200"
+            className="p-2 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 text-slate-400 hover:text-cyan-300 transition-all duration-200 cursor-pointer"
             title={`Switch to ${displayMode === "night" ? "day" : "night"} mode`}
             aria-label={`Switch to ${displayMode === "night" ? "day" : "night"} mode`}
             aria-pressed={displayMode === "day"}
@@ -393,23 +402,63 @@ export const Navbar = () => {
             )}
           </button>
 
-          {/* Public demo identity */}
+          {/* Chat & Messages Button */}
+          <button
+            onClick={() => navigate(currentUser?.authType === "admin" ? "/admin-chat" : "/messages")}
+            className="relative p-2 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 text-slate-400 hover:text-cyan-300 transition-all duration-200 cursor-pointer"
+            title="Messages & Community Chat"
+            aria-label="Open messages"
+          >
+            <MessageSquare className="w-4 h-4" />
+            {unreadMessageCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.7)]">
+                {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
+              </span>
+            )}
+          </button>
+
+          {/* User / Admin Profile & Logout */}
           <div className="flex items-center gap-2 pl-1 sm:pl-2 border-l border-slate-800">
             <div className="relative">
               <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-xs shadow-lg border bg-gradient-to-tr from-cyan-500 via-indigo-600 to-purple-600 border-cyan-300/40 shadow-cyan-500/20"
+                className={`w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-xs shadow-lg border ${
+                  currentUser?.authType === "admin"
+                    ? "bg-gradient-to-tr from-purple-600 via-indigo-600 to-pink-600 border-purple-400/50 shadow-purple-500/25"
+                    : "bg-gradient-to-tr from-cyan-500 via-indigo-600 to-purple-600 border-cyan-300/40 shadow-cyan-500/20"
+                }`}
               >
-                PD
+                {currentUser?.avatar || "US"}
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-sky-400 ring-2 ring-slate-950"></span>
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-950"></span>
             </div>
 
             <div className="hidden md:flex flex-col text-left">
-              <span className="text-xs font-bold text-white tracking-tight leading-tight">Public Demo</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-bold text-white tracking-tight leading-tight">
+                  {currentUser?.name || "City Operator"}
+                </span>
+                {currentUser?.authType === "admin" && (
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-purple-500/30 text-purple-300 border border-purple-500/50">
+                    ADMIN
+                  </span>
+                )}
+              </div>
               <span className="text-[10px] font-medium text-cyan-400/90 leading-tight">
-                Read-only access
+                {currentUser?.role || "Citizen User"}
               </span>
             </div>
+
+            {/* Logout button */}
+            <button
+              onClick={() => {
+                logout();
+                navigate("/");
+              }}
+              className="ml-1 p-2 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-rose-500/40 text-slate-400 hover:text-rose-400 hover:bg-rose-950/20 transition-all duration-200 cursor-pointer"
+              title="Logout from Simulator"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>

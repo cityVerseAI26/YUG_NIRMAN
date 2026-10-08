@@ -24,9 +24,12 @@ import {
   Sparkles,
   Waves,
   MapPin,
-  Droplet
+  Droplet,
+  MessageSquare
 } from "lucide-react";
 import { useCity } from "../../context/CityContext";
+import { useAuth } from "../../context/AuthContext";
+import useUnreadChatCount from "../../hooks/useUnreadChatCount";
 import Tooltip from "../common/Tooltip";
 import BrandMark from "../common/BrandMark";
 
@@ -210,6 +213,20 @@ export const NAVIGATION_ITEMS = [
     ],
   },
   {
+    section: "COMMUNICATION",
+    description: "Citizen inquiries, municipal discussion, and administration chat.",
+    items: [
+      {
+        path: "/messages",
+        label: "Messages & Chat",
+        sublabel: "Support and discussions",
+        icon: MessageSquare,
+        badge: "Chat",
+        badgeStyle: "purple",
+      },
+    ],
+  },
+  {
     section: "DEMO SETTINGS",
     description: "Review the current browser session and display preferences.",
     items: [
@@ -224,6 +241,8 @@ export const FLAT_NAVIGATION_ITEMS = NAVIGATION_ITEMS.flatMap((g) => g.items);
 
 export const Sidebar = () => {
   const { sidebarCollapsed, setSidebarCollapsed, mobileMenuOpen, setMobileMenuOpen, unreadAlertCount } = useCity();
+  const { currentUser } = useAuth();
+  const unreadMessageCount = useUnreadChatCount();
   const location = useLocation();
 
   const toggleSidebar = () => setSidebarCollapsed(!sidebarCollapsed);
@@ -412,6 +431,9 @@ export const Sidebar = () => {
                       }`}
                     />
                   </motion.span>
+                  {sidebarCollapsed && item.path === "/messages" && unreadMessageCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-slate-950 animate-pulse" />
+                  )}
 
                   <AnimatePresence initial={false}>
                     {!sidebarCollapsed && (
@@ -428,7 +450,11 @@ export const Sidebar = () => {
                           {item.alert && unreadAlertCount > 0 && (
                             <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
                           )}
-                          {item.badge && (
+                          {item.path === "/messages" && unreadMessageCount > 0 ? (
+                            <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-full uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse">
+                              {unreadMessageCount > 99 ? "99+" : `${unreadMessageCount} new`}
+                            </span>
+                          ) : item.badge && (
                             <span className={`px-1.5 py-0.5 text-[9px] font-bold rounded-full uppercase tracking-wider ${getBadgeClass(item.badgeStyle)}`}>
                               {item.badge}
                             </span>
@@ -487,15 +513,17 @@ export const Sidebar = () => {
                   whileHover={{ scale: 1.08, rotate: 4 }}
                   className="premium-sidebar-avatar flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-xs font-black text-cyan-100"
                 >
-                  PD
+                  {currentUser?.avatar || "US"}
                 </motion.span>
                 <span className="flex min-w-0 flex-col">
-                  <span className="truncate text-xs font-semibold text-slate-100">Public Demo</span>
+                  <span className="truncate text-xs font-semibold text-slate-100">
+                    {currentUser?.name || "Citizen User"}
+                  </span>
                   <span className="truncate text-[10px] text-cyan-200/65">
-                    Read-only access
+                    {currentUser?.role || "Verified Citizen"}
                   </span>
                 </span>
-                <span className="ml-auto h-1.5 w-1.5 flex-shrink-0 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]" />
+                <span className="ml-auto h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
               </div>
               <div className="premium-sidebar-story mb-3 rounded-xl p-3">
                 <div className="text-[10px] leading-relaxed text-slate-400">

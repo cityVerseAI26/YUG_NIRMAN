@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, MessageCircle, MessageSquare, Send, Trash2, Users } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -20,7 +20,8 @@ const formatMessageTime = (timestamp) => new Intl.DateTimeFormat(undefined, {
   minute: "2-digit",
 }).format(new Date(timestamp));
 
-export default function MessagesCenter() {
+export default function MessagesCenter({ onClose }) {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const isAdmin = currentUser?.authType === "admin";
   const [messages, setMessages] = useState(getChatMessages);
@@ -154,14 +155,22 @@ export default function MessagesCenter() {
             <h1 className="truncate text-base font-bold text-white">{isAdmin ? "Messages" : "Contact the admin team"}</h1>
           </div>
         </div>
-        {isAdmin ? (
-          <Link to="/admin-dashboard" className="messages-center-header-link inline-flex min-h-9 items-center gap-2 rounded-md border border-slate-600 px-3 text-xs font-semibold text-slate-200 transition-colors hover:border-[#70e2d0]/50 hover:text-[#70e2d0]">
-            <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-            Activity monitor
-          </Link>
-        ) : (
-          <span className="inline-flex items-center gap-2 text-[11px] text-slate-500"><span className="h-1.5 w-1.5 rounded-full bg-[#70e2d0]" />Browser-local chat</span>
-        )}
+        <button
+          type="button"
+          onClick={() => {
+            if (onClose) {
+              onClose();
+            } else if (isAdmin) {
+              navigate("/admin-dashboard");
+            } else {
+              navigate("/dashboard");
+            }
+          }}
+          className="messages-center-header-link inline-flex min-h-9 items-center gap-2 rounded-md border border-slate-600 px-3 text-xs font-semibold text-slate-200 transition-colors hover:border-[#70e2d0]/50 hover:text-[#70e2d0] cursor-pointer"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+          {isAdmin ? "Activity monitor" : "Dashboard"}
+        </button>
       </header>
 
       <div className="messages-center-body flex min-h-0 flex-1 flex-col md:flex-row">

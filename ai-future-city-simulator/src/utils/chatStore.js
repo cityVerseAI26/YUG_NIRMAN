@@ -70,12 +70,60 @@ export const markChatRoomAsRead = ({ email, role, room, threadId }) => {
   }
 };
 
+const INITIAL_DEMO_MESSAGES = [
+  {
+    id: "init-admin-team-1",
+    room: "admin",
+    threadId: "admins",
+    senderEmail: "a@gmail.com",
+    senderName: "Aman Prajapati (Super Admin)",
+    senderRole: "admin",
+    text: "Urban Intelligence Network online. All city sensors, scenario models, and citizen communication channels are monitored here.",
+    sentAt: Date.now() - 3600000 * 2,
+  },
+  {
+    id: "init-admin-team-2",
+    room: "admin",
+    threadId: "admins",
+    senderEmail: "h@gmail.com",
+    senderName: "Harsh Pal (City Admin)",
+    senderRole: "admin",
+    text: "Monitoring active city scenarios and weather advisories. User support inquiries will appear in the Support list.",
+    sentAt: Date.now() - 3600000,
+  },
+  {
+    id: "init-support-1",
+    room: "support",
+    threadId: "citizen.demo@yugnirman.org",
+    senderEmail: "citizen.demo@yugnirman.org",
+    senderName: "Priya Sharma",
+    senderRole: "user",
+    text: "Hello admin team! Could you explain why the air quality index for Mumbai was showing an alert earlier today?",
+    sentAt: Date.now() - 1800000,
+  },
+  {
+    id: "init-support-2",
+    room: "support",
+    threadId: "citizen.demo@yugnirman.org",
+    senderEmail: "h@gmail.com",
+    senderName: "Harsh Pal (City Admin)",
+    senderRole: "admin",
+    text: "Hi Priya! Coastal wind dispersion dropped below the seasonal average this morning, triggering a temporary PM2.5 advisory. It is being continuously tracked.",
+    sentAt: Date.now() - 900000,
+  },
+];
+
 export const getChatMessages = () => {
   try {
-    const messages = JSON.parse(window.localStorage.getItem(CHAT_STORAGE_KEY) || "[]");
+    const raw = window.localStorage.getItem(CHAT_STORAGE_KEY);
+    if (!raw) {
+      window.localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(INITIAL_DEMO_MESSAGES));
+      return INITIAL_DEMO_MESSAGES;
+    }
+    const messages = JSON.parse(raw);
     return Array.isArray(messages) ? messages : [];
   } catch {
-    return [];
+    return INITIAL_DEMO_MESSAGES;
   }
 };
 

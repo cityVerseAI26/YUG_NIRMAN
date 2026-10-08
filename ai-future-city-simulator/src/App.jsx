@@ -1,10 +1,14 @@
 import React, { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { CityProvider } from "./context/CityContext";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import MainLayout from "./components/layout/MainLayout";
 
 import LandingPage        from "./pages/LandingPage";
+import UserLogin          from "./pages/UserLogin";
+import AdminLogin         from "./pages/AdminLogin";
+import AdminDashboard     from "./pages/AdminDashboard";
+import MessagesCenter     from "./pages/MessagesCenter";
 import CitySelection      from "./pages/CitySelection";
 import Dashboard          from "./pages/Dashboard";
 import DataCenter         from "./pages/DataCenter";
@@ -22,23 +26,44 @@ import AIRecommendations  from "./pages/AIRecommendations";
 import Sustainability     from "./pages/Sustainability";
 import Settings           from "./pages/Settings";
 import UserHistory        from "./pages/UserHistory";
-import PopulationProfile from "./pages/PopulationProfile";
+import PopulationProfile  from "./pages/PopulationProfile";
 import IntelligenceCenter from "./pages/IntelligenceCenter";
 
 const City3D = lazy(() => import("./pages/City3D"));
 
+/* Protected route — requires login */
+function PrivateRoute({ children }) {
+  const { isLoggedIn } = useAuth();
+  const location = useLocation();
+  return isLoggedIn
+    ? children
+    : <Navigate to="/login" state={{ from: location }} replace />;
+}
+
+function AdminRoute({ children }) {
+  const { isLoggedIn, currentUser } = useAuth();
+  return isLoggedIn && currentUser?.authType === "admin"
+    ? children
+    : <Navigate to="/admin-login" replace />;
+}
+
 function AppRoutes() {
+  const { isLoggedIn, currentUser } = useAuth();
+  const signedInPath = currentUser?.authType === "admin" ? "/admin-dashboard" : "/select-city";
+
   return (
     <Routes>
+      {/* Public / Auth routes */}
       <Route path="/"            element={<LandingPage />} />
-      <Route path="/login" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/register" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/admin-login" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/admin-dashboard" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/admin-chat" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/select-city" element={<CitySelection />} />
+      <Route path="/login"       element={isLoggedIn ? <Navigate to={signedInPath} replace /> : <UserLogin />} />
+      <Route path="/register"    element={isLoggedIn ? <Navigate to={signedInPath} replace /> : <UserLogin />} />
+      <Route path="/admin-login" element={isLoggedIn ? <Navigate to={signedInPath} replace /> : <AdminLogin />} />
+      <Route path="/admin-dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+      <Route path="/admin-chat" element={<AdminRoute><MessagesCenter /></AdminRoute>} />
+      <Route path="/select-city" element={<PrivateRoute><CitySelection /></PrivateRoute>} />
 
-      <Route path="/" element={<MainLayout />}>
+      {/* Main app layout routes */}
+      <Route path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
         <Route path="dashboard"          element={<Dashboard />} />
         <Route path="data-center"        element={<DataCenter />} />
         <Route path="city-health"        element={<CityHealth />} />
@@ -63,7 +88,7 @@ function AppRoutes() {
         <Route path="report-generation"  element={<ReportGeneration />} />
         <Route path="settings"           element={<Settings />} />
         <Route path="history"            element={<UserHistory />} />
-        <Route path="messages"           element={<Navigate to="/dashboard" replace />} />
+        <Route path="messages"           element={<MessagesCenter />} />
         <Route path="population-profile" element={<PopulationProfile />} />
         <Route path="intelligence-center" element={<IntelligenceCenter />} />
       </Route>
