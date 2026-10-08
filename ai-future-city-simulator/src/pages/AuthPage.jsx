@@ -3,10 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, CircleAlert, LockKeyhole, Mail, UserRound } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
-export default function AuthPage({ adminOnly = false }) {
+export default function AuthPage({ adminOnly = false, initialMode = "login" }) {
   const navigate = useNavigate();
   const { currentUser, authLoading, loginUser, loginAdmin, registerUser, resetUserPassword } = useAuth();
-  const [mode, setMode] = useState("login");
+  const [mode, setMode] = useState(initialMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
