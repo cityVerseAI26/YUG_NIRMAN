@@ -40,7 +40,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<AuthPage />} />
-      <Route path="/register" element={<AuthPage />} />
+      <Route path="/register" element={<AuthPage initialMode="register" />} />
       <Route path="/admin-login" element={<AuthPage adminOnly />} />
       <Route path="/admin-dashboard" element={<AdminRoute />} />
       <Route path="/admin-chat" element={<Navigate to="/admin-dashboard" replace />} />
