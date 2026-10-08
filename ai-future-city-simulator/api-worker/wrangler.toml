@@ -3,7 +3,7 @@ main = "src/index.js"
 compatibility_date = "2026-10-04"
 
 [vars]
-ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:5174,http://localhost:5175,http://127.0.0.1:5173,http://127.0.0.1:5174,http://127.0.0.1:5175,https://cityverseai26.github.io,https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev"
+ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:5174,http://localhost:5175,http://127.0.0.1:5173,http://127.0.0.1:5174,http://127.0.0.1:5175,https://cityverseai26.github.io,https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev,https://beamish-clafoutis-0aa13d.netlify.app"
 
 [[ratelimits]]
 name = "SENSOR_RATE_LIMITER"
