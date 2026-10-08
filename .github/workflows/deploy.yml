@@ -35,6 +35,8 @@ jobs:
           VITE_DATA_API_URL: ${{ vars.VITE_DATA_API_URL }}
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - name: Preserve client-side routes
         run: cp ai-future-city-simulator/dist/index.html ai-future-city-simulator/dist/404.html
       - name: Upload site artifact
