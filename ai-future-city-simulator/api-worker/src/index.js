@@ -1,5 +1,35 @@
 import { unzipSync } from "fflate";
 
+// ---------------------------------------------------------------------------
+// Global presence registry — tracks active sessions across all devices
+// Session TTL: 20 s. Clients ping every 8 s.
+// Note: state lives in this Worker isolate; it is reset on cold-start but
+// refreshes automatically as clients re-ping within 8 s.
+// ---------------------------------------------------------------------------
+const activeSessions = new Map(); // sessionId -> expiresAt (ms)
+const PRESENCE_TTL_MS = 20_000;
+
+function pruneExpiredSessions() {
+  const now = Date.now();
+  for (const [id, expiresAt] of activeSessions) {
+    if (now > expiresAt) activeSessions.delete(id);
+  }
+}
+
+function handlePresence(url) {
+  const sessionId = url.searchParams.get("session");
+  if (!sessionId || sessionId.length > 64) {
+    return json({ error: "Provide a valid session ID (≤64 chars)." }, 400);
+  }
+  pruneExpiredSessions();
+  activeSessions.set(sessionId, Date.now() + PRESENCE_TTL_MS);
+  return json(
+    { count: activeSessions.size, updatedAt: new Date().toISOString() },
+    200,
+    { "Cache-Control": "no-store" }
+  );
+}
+
 const json = (body, status = 200, headers = {}) =>
   new Response(JSON.stringify(body), {
     status,
@@ -753,6 +783,12 @@ export default {
     }
 
     const url = new URL(request.url);
+
+    // Presence endpoint — no rate limit, returns global active visitor count
+    if (url.pathname === "/api/presence") {
+      return withCors(handlePresence(url), origin);
+    }
+
     const isSensorRequest = url.pathname === "/api/sensors";
     const isOsmRequest = url.pathname === "/api/osm/map";
     const isTrafficRequest = url.pathname.startsWith("/api/traffic/tiles/");

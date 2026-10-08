@@ -10,6 +10,7 @@ import {
   Droplets,
   Eye,
   FileInput,
+  Globe2,
   Leaf,
   LineChart,
   LogOut,
@@ -147,6 +148,7 @@ const FEATURED_CITIES = [
 const VISIT_COUNT_KEY = "city-simulator-browser-visits";
 const ACTIVE_TABS_KEY = "city-simulator-active-tabs";
 const ACTIVE_VISITS_CHANNEL = "city-simulator-active-visits";
+const PRESENCE_API_URL = "https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev/api/presence";
 
 function recordBrowserVisit() {
   try {
@@ -202,6 +204,7 @@ export default function LandingPage() {
   const [browserVisitCount, setBrowserVisitCount] = useState(1);
   const [pageSeconds, setPageSeconds] = useState(0);
   const [activeVisitCount, setActiveVisitCount] = useState(1);
+  const [globalVisitorCount, setGlobalVisitorCount] = useState(null);
   const [heroSlides, setHeroSlides] = useState([]);
   const [activeHeroSlide, setActiveHeroSlide] = useState(0);
 
@@ -325,6 +328,34 @@ export default function LandingPage() {
     };
   }, []);
 
+  // Global cross-device presence — pings the Cloudflare Worker every 8 s
+  useEffect(() => {
+    const sessionId = `glb_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    let cancelled = false;
+
+    async function pingPresence() {
+      try {
+        const res = await fetch(
+          `${PRESENCE_API_URL}?session=${encodeURIComponent(sessionId)}`,
+          { signal: AbortSignal.timeout(6_000) }
+        );
+        if (res.ok && !cancelled) {
+          const { count } = await res.json();
+          if (typeof count === "number") setGlobalVisitorCount(count);
+        }
+      } catch {
+        // Worker unreachable — keep showing local count
+      }
+    }
+
+    pingPresence();
+    const timer = window.setInterval(pingPresence, 8_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, []);
+
   useEffect(() => {
     const controller = new AbortController();
     const params = new URLSearchParams({
@@ -388,6 +419,15 @@ export default function LandingPage() {
   );
 
   const usageStats = [
+    {
+      label: "Live visitors globally",
+      value: globalVisitorCount !== null ? globalVisitorCount : "—",
+      detail: globalVisitorCount !== null
+        ? `Across all devices & browsers`
+        : "Connecting to live feed…",
+      icon: Globe2,
+      color: "#f59e0b",
+    },
     {
       label: "Active visits in this browser",
       value: activeVisitCount,
@@ -488,7 +528,7 @@ export default function LandingPage() {
 
       <section id="activity" className="lp-stats-section lp-overview-section lp-reveal" aria-labelledby="lp-overview-title">
         <div className="lp-section-heading lp-reveal-item">
-          <p className="lp-section-kicker">LIVE · THIS BROWSER</p>
+          <p className="lp-section-kicker">LIVE · GLOBAL &amp; THIS BROWSER</p>
           <h2 id="lp-overview-title" className="lp-section-title">Activity, right now</h2>
         </div>
         <div className="lp-stats-grid lp-overview-grid">
@@ -504,7 +544,7 @@ export default function LandingPage() {
           ))}
         </div>
         <p className="lp-data-note lp-reveal-item">
-          Activity updates live in this browser. Active visits count open tabs on this device; site-wide online totals require a shared analytics service.
+          <strong>Live visitors globally</strong> counts active sessions across all devices and browsers via the city data worker (updates every 8 s). <strong>Active visits in this browser</strong> counts open tabs on this device in real time.
         </p>
       </section>
 
