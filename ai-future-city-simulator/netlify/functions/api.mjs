@@ -1,6 +1,7 @@
 const WORKER_ORIGIN = "https://city-digital-twin-data.yug-nirmanyug-nirman.workers.dev";
 const ALLOWED_WORKER_ORIGIN = "https://cityverseai26.github.io";
 const FUNCTION_PATH = "/.netlify/functions/api";
+const PROXY_PATH = "/api/proxy";
 
 export const handler = async (event) => {
   if (event.httpMethod !== "GET") {
@@ -11,7 +12,10 @@ export const handler = async (event) => {
     };
   }
 
-  const workerPath = event.path.slice(FUNCTION_PATH.length);
+  const requestPath = event.path || "";
+  const workerPath = requestPath.startsWith(`${PROXY_PATH}/`)
+    ? requestPath.slice(PROXY_PATH.length)
+    : requestPath.slice(FUNCTION_PATH.length);
   if (!workerPath.startsWith("/api/")) {
     return {
       statusCode: 404,
