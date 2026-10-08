@@ -1,18 +1,13 @@
-﻿import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Settings as SettingsIcon, Save, Download, RefreshCw, Cpu, Database, Bell, CheckCircle, CircleAlert, Trash2 } from "lucide-react";
+import React, { useState } from "react";
+import { Settings as SettingsIcon, Save, Download, RefreshCw, Cpu, Database, Bell, CheckCircle } from "lucide-react";
 import { useCity } from "../context/CityContext";
-import { useAuth } from "../context/AuthContext";
 import PageHeader from "../components/common/PageHeader";
 
 export const Settings = () => {
-  const navigate = useNavigate();
-  const { currentUser, deleteCurrentUserAccount } = useAuth();
   const { city, selectedCity, setSelectedCity, citiesList } = useCity();
   const [refreshInterval, setRefreshInterval] = useState("5s");
   const [sensitivity, setSensitivity] = useState("high");
   const [savedToast, setSavedToast] = useState(false);
-  const [accountDeleteError, setAccountDeleteError] = useState("");
 
   const handleSave = () => {
     setSavedToast(true);
@@ -31,24 +26,11 @@ export const Settings = () => {
     URL.revokeObjectURL(url);
   };
 
-  const handleDeleteAccount = () => {
-    const accountName = currentUser?.name || currentUser?.email || "your account";
-    if (!window.confirm(`Permanently delete ${accountName} and this account's saved profile, activity, messages, and prediction reports from this browser? This cannot be undone.`)) return;
-
-    const result = deleteCurrentUserAccount();
-    if (!result.success) {
-      setAccountDeleteError(result.message);
-      return;
-    }
-
-    navigate("/login", { replace: true, state: { accountDeleted: true } });
-  };
-
   return (
     <div className="space-y-6">
       <PageHeader
-        title="SIMULATOR SETTINGS & CONFIGURATION"
-        subtitle="City selection and local demo preferences"
+        title="Settings"
+        subtitle="Choose your city and update display options."
         icon={SettingsIcon}
         badge="Local demo settings"
         actions={
@@ -177,37 +159,6 @@ export const Settings = () => {
         </div>
       </div>
 
-      {currentUser?.authType === "user" && (
-        <section className="rounded-xl border border-rose-500/25 bg-rose-500/[0.035] p-5 sm:p-6" aria-labelledby="delete-account-title">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-rose-400/20 bg-rose-400/10 text-rose-300">
-                <Trash2 className="h-4 w-4" aria-hidden="true" />
-              </span>
-              <div>
-                <h3 id="delete-account-title" className="text-sm font-bold text-white">Delete user account</h3>
-                <p className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-400">
-                  Permanently remove your saved login, profile, activity history, support messages, and prediction reports from this browser. Signing out alone does not delete your account.
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleDeleteAccount}
-              className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-md border border-rose-400/40 bg-rose-500/10 px-3.5 text-xs font-bold text-rose-200 transition-colors hover:border-rose-300/70 hover:bg-rose-500/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300"
-            >
-              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-              Delete my account
-            </button>
-          </div>
-          {accountDeleteError && (
-            <p className="mt-3 flex items-start gap-2 text-xs text-rose-300" role="alert">
-              <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              {accountDeleteError}
-            </p>
-          )}
-        </section>
-      )}
     </div>
   );
 };

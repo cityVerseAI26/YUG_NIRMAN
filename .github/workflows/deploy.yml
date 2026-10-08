@@ -25,20 +25,22 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: ai-future-city-simulator/package-lock.json
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefix ai-future-city-simulator
       - name: Build site
-        run: npm run build
+        run: npm run build --prefix ai-future-city-simulator
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_DATA_API_URL: ${{ vars.VITE_DATA_API_URL }}
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Preserve client-side routes
-        run: cp dist/index.html dist/404.html
+        run: cp ai-future-city-simulator/dist/index.html ai-future-city-simulator/dist/404.html
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: ai-future-city-simulator/dist
 
   deploy:
     environment:

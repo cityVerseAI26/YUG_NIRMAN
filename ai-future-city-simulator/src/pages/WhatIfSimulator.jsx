@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   FlaskConical,
   Play,
@@ -35,20 +36,24 @@ import {
 } from "recharts";
 import { useCity } from "../context/CityContext";
 import PageHeader from "../components/common/PageHeader";
+import CityTransformation from "../components/common/CityTransformation";
+import { buildWhatIfTransformation } from "../utils/cityTransformation";
 import confetti from "canvas-confetti";
 
 export const WhatIfSimulator = () => {
   const { city } = useCity();
+  const navigate = useNavigate();
 
   // Policy sliders
   const [evAdoption, setEvAdoption] = useState(40); // 0 - 100%
   const [metroExpansion, setMetroExpansion] = useState(30); // 0 - 80 km
   const [greenCanopy, setGreenCanopy] = useState(32); // 10 - 60%
   const [congestionTax, setCongestionTax] = useState(150); // 0 - 500 INR
-  const [greywaterMandate, setGreywaterMandate] = useState(55); // 0 - 100%
   const [solarMandate, setSolarMandate] = useState(50); // 0 - 100%
   const [isSimulating, setIsSimulating] = useState(false);
   const [activePreset, setActivePreset] = useState("custom");
+  const [simulationResult, setSimulationResult] = useState(null);
+  const visibleSimulationResult = simulationResult?.cityId === city.id ? simulationResult : null;
 
   // Dynamic simulation computations
   const trafficReduction = Math.round(
@@ -67,10 +72,18 @@ export const WhatIfSimulator = () => {
     (congestionTax * 2.1) - (metroExpansion * 4.4) - (greenCanopy * 1.1) - (solarMandate * 1.5)
   );
 
-  const projectedHealthScore = Math.min(
-    99,
-    Math.round((city.healthScore?.overall || 76) + (aqiImprovement * 0.14) + (trafficReduction * 0.09) + (greenCanopy * 0.1))
-  );
+  const baselineHealthValue = city.healthScore?.overall;
+  const baselineHealthScore = baselineHealthValue != null
+    && baselineHealthValue !== ""
+    && Number.isFinite(Number(baselineHealthValue))
+    ? Number(baselineHealthValue)
+    : null;
+  const projectedHealthScore = baselineHealthScore == null
+    ? null
+    : Math.min(
+      99,
+      Math.round(baselineHealthScore + (aqiImprovement * 0.14) + (trafficReduction * 0.09) + (greenCanopy * 0.1))
+    );
 
   // Dynamic Multi-Year Projection Data based on current slider values
   const projectionTimeline = [
@@ -83,34 +96,31 @@ export const WhatIfSimulator = () => {
 
   // Presets
   const applyPreset = (presetKey) => {
+    setSimulationResult(null);
     setActivePreset(presetKey);
     if (presetKey === "utopia") {
       setEvAdoption(90);
       setMetroExpansion(65);
       setGreenCanopy(52);
       setCongestionTax(300);
-      setGreywaterMandate(90);
       setSolarMandate(85);
     } else if (presetKey === "transit") {
       setEvAdoption(50);
       setMetroExpansion(75);
       setGreenCanopy(35);
       setCongestionTax(400);
-      setGreywaterMandate(50);
       setSolarMandate(40);
     } else if (presetKey === "budget") {
       setEvAdoption(25);
       setMetroExpansion(15);
       setGreenCanopy(28);
       setCongestionTax(250);
-      setGreywaterMandate(35);
       setSolarMandate(30);
     } else if (presetKey === "defaults") {
       setEvAdoption(40);
       setMetroExpansion(30);
       setGreenCanopy(32);
       setCongestionTax(150);
-      setGreywaterMandate(55);
       setSolarMandate(50);
       setActivePreset("custom");
     }
@@ -119,6 +129,16 @@ export const WhatIfSimulator = () => {
   const handleRunSimulation = () => {
     setIsSimulating(true);
     setTimeout(() => {
+      setSimulationResult(buildWhatIfTransformation({
+        city,
+        trafficReduction,
+        aqiImprovement,
+        projectedHealthScore,
+        baselineHealthScore,
+        carbonAbated,
+        budgetImpact,
+        inputs: { evAdoption, metroExpansion, greenCanopy, congestionTax, solarMandate },
+      }));
       setIsSimulating(false);
       confetti({
         particleCount: 80,
@@ -132,10 +152,11 @@ export const WhatIfSimulator = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="WHAT-IF URBAN POLICY SIMULATOR"
-        subtitle="Local what-if scenario sandbox • generated outcomes, not live municipal data"
+        title="What-If Scenario"
+        subtitle="Change the settings to explore example results, not official city forecasts."
         icon={FlaskConical}
         badge="Scenario simulator"
+        whyFeatureIds="what-if-scenarios"
         actions={
           <div className="flex items-center gap-2">
             <button
@@ -151,7 +172,7 @@ export const WhatIfSimulator = () => {
               className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 text-slate-950 text-xs font-extrabold flex items-center gap-2 shadow-lg shadow-cyan-500/25 hover:brightness-110 transition-all cursor-pointer"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
-              <span>{isSimulating ? "Synthesizing..." : "Execute Simulation"}</span>
+              <span>{isSimulating ? "Capturing scenario..." : "Run simulation"}</span>
             </button>
           </div>
         }
@@ -186,54 +207,81 @@ export const WhatIfSimulator = () => {
         </div>
       </div>
 
+      <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-100">
+        SIMULATED DEMO: Slider formulas produce illustrative index changes only. Coefficients are not calibrated against transport, emissions, utility, cost, or city-health observations; changing a slider updates the values immediately. The button only replays the presentation animation.
+      </div>
+
+      {visibleSimulationResult ? (
+        <div className="space-y-3">
+          <CityTransformation transformation={visibleSimulationResult} />
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-cyan-500/20 bg-slate-950/50 p-3">
+            <p className="text-[11px] text-slate-300">
+              This snapshot uses the slider values captured when Run simulation was selected. Change an input and run again to refresh it.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate("/report-generation", { state: { cityTransformation: visibleSimulationResult } })}
+              className="inline-flex min-h-9 items-center gap-2 rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-3 py-2 text-xs font-bold text-cyan-100 transition-colors hover:bg-cyan-400/20"
+            >
+              Include in City Intelligence Report
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-cyan-500/30 bg-slate-950/40 p-5 text-center">
+          <p className="text-sm font-bold text-white">Run the scenario to capture a before-and-after snapshot</p>
+          <p className="mt-1 text-xs text-slate-400">Only traffic index, AQI index, and the existing illustrative scenario rating have calculated after-values. Unsupported indicators will remain “Not modeled.”</p>
+        </div>
+      )}
+
       {/* ── Simulated Outcomes KPI Strip ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {/* 1. Traffic Relief */}
         <div className="p-4 rounded-2xl glass-panel border border-rose-500/30 bg-rose-950/10">
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>Congestion Relief</span>
+            <span>Traffic index change · demo points</span>
             <Car className="w-4 h-4 text-rose-400" />
           </div>
           <div className="mt-2 text-2xl font-black font-mono text-emerald-400">
-            -{trafficReduction}%
+            -{trafficReduction} points
           </div>
           <p className="text-[10px] text-slate-400 mt-1">
-            Rush-hour velocity +{Math.round(trafficReduction * 0.45)} km/h
+            No speed estimate · no measured traffic data
           </p>
         </div>
 
         {/* 2. AQI Improvement */}
         <div className="p-4 rounded-2xl glass-panel border border-amber-500/30 bg-amber-950/10">
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>AQI Points Abated</span>
+            <span>AQI index change · demo points</span>
             <Wind className="w-4 h-4 text-amber-400" />
           </div>
           <div className="mt-2 text-2xl font-black font-mono text-emerald-400">
-            -{aqiImprovement} AQI
+            -{aqiImprovement} points
           </div>
           <p className="text-[10px] text-slate-400 mt-1">
-            Forecast AQI: {Math.max(25, (city.metrics.aqi.value - aqiImprovement))}
+            Scenario index: {Math.max(25, (city.metrics.aqi.value - aqiImprovement))}
           </p>
         </div>
 
         {/* 3. Carbon Saved */}
         <div className="p-4 rounded-2xl glass-panel border border-emerald-500/30 bg-emerald-950/10">
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>CO₂ Abatement</span>
+            <span>Emissions proxy · demo points</span>
             <Trees className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="mt-2 text-2xl font-black font-mono text-cyan-300">
-            {carbonAbated} MT/yr
+            {carbonAbated}
           </div>
           <p className="text-[10px] text-slate-400 mt-1">
-            Greenhouse gas emissions neutralized
+            Not tonnes of CO₂ · no emissions inventory connected
           </p>
         </div>
 
         {/* 4. Municipal Fiscal Impact */}
         <div className="p-4 rounded-2xl glass-panel border border-blue-500/30 bg-blue-950/10">
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>Net Fiscal Balance</span>
+            <span>Budget proxy · demo points</span>
             <DollarSign className="w-4 h-4 text-blue-400" />
           </div>
           <div
@@ -241,24 +289,26 @@ export const WhatIfSimulator = () => {
               budgetImpact >= 0 ? "text-emerald-400" : "text-amber-400"
             }`}
           >
-            {budgetImpact >= 0 ? `+₹${budgetImpact} Cr` : `-₹${Math.abs(budgetImpact)} Cr`}
+            {budgetImpact >= 0 ? `+${budgetImpact}` : `-${Math.abs(budgetImpact)}`}
           </div>
           <p className="text-[10px] text-slate-400 mt-1">
-            Tolls collected vs Infrastructure CapEx
+            Not currency · no city budget or cost data connected
           </p>
         </div>
 
         {/* 5. Projected Health Score */}
         <div className="p-4 rounded-2xl glass-panel border border-cyan-500/40 bg-cyan-950/20 col-span-2 sm:col-span-1">
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>Projected Health</span>
+            <span>Demo scenario rating · not City Health Score</span>
             <ShieldCheck className="w-4 h-4 text-cyan-400" />
           </div>
           <div className="mt-2 text-2xl font-black font-mono text-cyan-300">
-            {projectedHealthScore} / 100
+            {projectedHealthScore == null ? "N/A" : `${projectedHealthScore} / 100`}
           </div>
           <p className="text-[10px] text-cyan-400 mt-1 font-semibold">
-            +{projectedHealthScore - (city.healthScore?.overall || 76)} pts trajectory gain
+            {projectedHealthScore == null || baselineHealthScore == null
+              ? "No baseline rating is available"
+              : `${projectedHealthScore - baselineHealthScore >= 0 ? "+" : ""}${projectedHealthScore - baselineHealthScore} points vs bundled rating`}
           </p>
         </div>
       </div>
@@ -270,11 +320,11 @@ export const WhatIfSimulator = () => {
             <div className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-cyan-400" />
               <h3 className="text-sm font-bold text-white tracking-wide">
-                POLICY PROJECTION MATRIX: Baseline vs What-If Simulated Trajectory (2026–2040)
+                DEMO INDEX SCENARIOS: Bundled baseline vs slider arithmetic (2026–2040)
               </h3>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
-              Live multi-variable divergence computed dynamically from slider inputs
+              Illustrative arithmetic updates from sliders; not a live forecast or validated trajectory
             </p>
           </div>
           <div className="flex items-center gap-4 text-xs font-mono">
@@ -338,7 +388,7 @@ export const WhatIfSimulator = () => {
             </div>
             <input
               type="range" min="0" max="100" step="5" value={evAdoption}
-              onChange={(e) => { setEvAdoption(parseInt(e.target.value, 10)); setActivePreset("custom"); }}
+              onChange={(e) => { setEvAdoption(parseInt(e.target.value, 10)); setActivePreset("custom"); setSimulationResult(null); }}
               className="w-full accent-cyan-400 cursor-pointer h-2 bg-slate-800 rounded-lg"
             />
             <div className="flex justify-between text-[10px] text-slate-500 font-mono">
@@ -358,7 +408,7 @@ export const WhatIfSimulator = () => {
             </div>
             <input
               type="range" min="0" max="80" step="5" value={metroExpansion}
-              onChange={(e) => { setMetroExpansion(parseInt(e.target.value, 10)); setActivePreset("custom"); }}
+              onChange={(e) => { setMetroExpansion(parseInt(e.target.value, 10)); setActivePreset("custom"); setSimulationResult(null); }}
               className="w-full accent-blue-400 cursor-pointer h-2 bg-slate-800 rounded-lg"
             />
             <div className="flex justify-between text-[10px] text-slate-500 font-mono">
@@ -378,7 +428,7 @@ export const WhatIfSimulator = () => {
             </div>
             <input
               type="range" min="0" max="500" step="25" value={congestionTax}
-              onChange={(e) => { setCongestionTax(parseInt(e.target.value, 10)); setActivePreset("custom"); }}
+              onChange={(e) => { setCongestionTax(parseInt(e.target.value, 10)); setActivePreset("custom"); setSimulationResult(null); }}
               className="w-full accent-rose-400 cursor-pointer h-2 bg-slate-800 rounded-lg"
             />
             <div className="flex justify-between text-[10px] text-slate-500 font-mono">
@@ -406,7 +456,7 @@ export const WhatIfSimulator = () => {
             </div>
             <input
               type="range" min="15" max="60" step="1" value={greenCanopy}
-              onChange={(e) => { setGreenCanopy(parseInt(e.target.value, 10)); setActivePreset("custom"); }}
+              onChange={(e) => { setGreenCanopy(parseInt(e.target.value, 10)); setActivePreset("custom"); setSimulationResult(null); }}
               className="w-full accent-emerald-400 cursor-pointer h-2 bg-slate-800 rounded-lg"
             />
             <div className="flex justify-between text-[10px] text-slate-500 font-mono">
@@ -416,37 +466,17 @@ export const WhatIfSimulator = () => {
             </div>
           </div>
 
-          {/* Slider 5: Greywater Recycling Mandate */}
+          {/* Slider 5: Solar Microgrid Mandate */}
           <div className="space-y-2">
             <div className="flex justify-between text-xs">
               <span className="font-semibold text-slate-300">
-                5. Decentralized Greywater Recycling Mandate
-              </span>
-              <span className="font-mono font-bold text-cyan-400">{greywaterMandate}% of Buildings</span>
-            </div>
-            <input
-              type="range" min="0" max="100" step="5" value={greywaterMandate}
-              onChange={(e) => { setGreywaterMandate(parseInt(e.target.value, 10)); setActivePreset("custom"); }}
-              className="w-full accent-cyan-400 cursor-pointer h-2 bg-slate-800 rounded-lg"
-            />
-            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-              <span>0% (Untreated)</span>
-              <span>50%</span>
-              <span>100% (Closed Loop Water)</span>
-            </div>
-          </div>
-
-          {/* Slider 6: Solar Microgrid Mandate */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs">
-              <span className="font-semibold text-slate-300">
-                6. Clean Energy & Solar Microgrid Share
+                5. Clean Energy & Solar Microgrid Share
               </span>
               <span className="font-mono font-bold text-amber-400">{solarMandate}% Grid</span>
             </div>
             <input
               type="range" min="10" max="100" step="5" value={solarMandate}
-              onChange={(e) => { setSolarMandate(parseInt(e.target.value, 10)); setActivePreset("custom"); }}
+              onChange={(e) => { setSolarMandate(parseInt(e.target.value, 10)); setActivePreset("custom"); setSimulationResult(null); }}
               className="w-full accent-amber-400 cursor-pointer h-2 bg-slate-800 rounded-lg"
             />
             <div className="flex justify-between text-[10px] text-slate-500 font-mono">
@@ -460,10 +490,10 @@ export const WhatIfSimulator = () => {
           <div className="p-4 rounded-xl bg-cyan-950/30 border border-cyan-500/30 text-xs">
             <div className="flex items-center gap-2 text-cyan-300 font-bold mb-1">
               <Sparkles className="w-4 h-4" />
-              <span>AI Multi-Variable Sensitivity Verdict:</span>
+              <span>Demo sensitivity summary · rule-based arithmetic:</span>
             </div>
             <p className="text-slate-300 leading-relaxed text-[11px]">
-              Pairing a ₹{congestionTax} congestion toll with +{metroExpansion} km of metro rail and {evAdoption}% EV adoption shifts modal share by {trafficReduction}%, achieving an optimal municipal health rating of {projectedHealthScore}/100.
+              Selected inputs (₹{congestionTax} toll, {metroExpansion} km metro expansion, {evAdoption}% EV adoption) produce a synthetic traffic-index change of {trafficReduction} points and AQI-index change of {aqiImprovement} points. These fixed coefficients do not estimate modal share or an official municipal health rating.
             </p>
           </div>
         </div>

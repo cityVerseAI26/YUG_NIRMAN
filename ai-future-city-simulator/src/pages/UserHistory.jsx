@@ -58,8 +58,8 @@ export default function UserHistory() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="MY HISTORY"
-        subtitle="Review the city tools and locations you have visited"
+        title="Recent Activity"
+        subtitle="See the city pages and places you have viewed."
         icon={History}
         badge="Private to this account"
         actions={entries.length > 0 && (

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useCity } from "../context/CityContext";
 import PageHeader from "../components/common/PageHeader";
+import AIInsightsPanel from "../components/dashboard/AIInsightsPanel";
 import confetti from "canvas-confetti";
 
 export const AIRecommendations = () => {
@@ -42,10 +43,11 @@ export const AIRecommendations = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="RECOMMENDATION EXAMPLES"
-        subtitle="Sample strategic-policy ideas for review"
+        title="Planning Suggestions"
+        subtitle="Example ideas for city planning. Review them before use."
         icon={Bot}
         badge="Sample templates"
+        whyFeatureIds={["ai-urban-planner", "city-optimization"]}
         actions={
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono font-bold px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
@@ -57,8 +59,10 @@ export const AIRecommendations = () => {
       />
 
       <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs text-amber-100">
-        These are example recommendation templates from local sample data—not outputs from a connected AI service or a municipal authorization workflow. Approvals are stored only in this page session.
+        These are example recommendation templates from local sample data—not outputs from a connected AI service or a municipal authorization workflow. Approvals are stored only in this phase session.
       </div>
+
+      <AIInsightsPanel />
 
       {/* ── Interactive Category Filters ── */}
       <div className="p-3.5 rounded-2xl glass-panel border border-cyan-500/20 flex flex-wrap items-center justify-between gap-3">
@@ -106,7 +110,7 @@ export const AIRecommendations = () => {
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-mono font-bold text-emerald-400 flex items-center gap-1">
                       <Sparkles className="w-3 h-3" />
-                      {rec.confidence}% Template score
+                      Sample policy
                     </span>
                     <span
                       className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase ${

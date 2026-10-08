@@ -1,4 +1,4 @@
-﻿export const POPULATION_DATA = {
+﻿const BUNDLED_POPULATION_PROFILES = {
   mumbai: {
     current: "12.5M",
     projected2030: "14.8M",
@@ -125,3 +125,32 @@
     }
   }
 };
+
+export const POPULATION_DATA = Object.freeze(
+  Object.fromEntries(
+    Object.entries(BUNDLED_POPULATION_PROFILES).map(([cityId, profile]) => [
+      cityId,
+      Object.freeze({
+        ...profile,
+        source: "Bundled illustrative population profile",
+        classification: "SIMULATED",
+        dataType: "STATIC",
+        unit: "millions of people",
+        referenceYear: 2026,
+        coverageYears: [
+          profile.historyAndForecast[0]?.year,
+          profile.historyAndForecast.at(-1)?.year,
+        ],
+        geographicLevel: "City, municipality, or metro boundary not documented",
+        methodology: "No source records or calculation method are documented.",
+        historyAndForecast: Object.freeze(
+          profile.historyAndForecast.map((point) => Object.freeze({
+            ...point,
+            actual: null,
+            predicted: Number(point.year) > 2026 ? point.predicted : null,
+          }))
+        ),
+      }),
+    ])
+  )
+);

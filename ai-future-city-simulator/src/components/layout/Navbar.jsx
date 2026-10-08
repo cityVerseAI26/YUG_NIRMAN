@@ -15,12 +15,9 @@ import {
   Car,
   ExternalLink,
   ShieldCheck,
-  Sparkles,
-  LogOut
 } from "lucide-react";
 import { useCity } from "../../context/CityContext";
-import { useAuth } from "../../context/AuthContext";
-import { NAVIGATION_ITEMS } from "./Sidebar";
+import { FLAT_NAVIGATION_ITEMS } from "./Sidebar";
 
 export const Navbar = () => {
   const {
@@ -35,10 +32,10 @@ export const Navbar = () => {
     currentTime,
     currentDate,
     sidebarCollapsed,
-    setMobileMenuOpen
+    setMobileMenuOpen,
+    displayMode,
+    setDisplayMode
   } = useCity();
-
-  const { currentUser, logout } = useAuth();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -47,7 +44,6 @@ export const Navbar = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
-  const [neonMode, setNeonMode] = useState(true);
 
   const notifRef = useRef(null);
   const cityRef = useRef(null);
@@ -72,18 +68,23 @@ export const Navbar = () => {
 
   // Compute dynamic page title & subtitle based on current route
   const getPageMeta = () => {
-    const current = NAVIGATION_ITEMS.find((item) =>
-      item.path === "/"
-        ? location.pathname === "/"
-        : location.pathname.startsWith(item.path)
-    );
+    const current = FLAT_NAVIGATION_ITEMS.find((item) => item.path === `${location.pathname}${location.hash}`)
+      || FLAT_NAVIGATION_ITEMS.find((item) => item.path.split("#")[0] === location.pathname);
     if (!current) return { title: "Command Center", subtitle: "City dashboard and public-data overview" };
 
-    switch (current.path) {
+    switch (current.path.split("#")[0]) {
       case "/":
-        return { title: "City Command Center", subtitle: "AI-Powered Digital Twin Overview" };
+        return { title: "City Command Center", subtitle: "Current data, city context & scenarios" };
       case "/digital-twin":
         return { title: "City Digital Twin", subtitle: "OpenStreetMap features and public model conditions" };
+      case "/data-center":
+        return { title: "Data Center", subtitle: "Sources, coverage, and data trust" };
+      case "/intelligence-center":
+        return { title: "Intelligence Center", subtitle: "City alerts, signals, and available evidence" };
+      case "/population-profile":
+        return { title: "Population Profile", subtitle: "Population profile and illustrative growth scenarios" };
+      case "/city-problems":
+        return { title: "City Problems", subtitle: "Threshold-based city indicators" };
       case "/future-predictions":
         return { title: "Future Predictions", subtitle: "Multi-Decade Urban Simulation Engine" };
       case "/what-if-simulator":
@@ -97,7 +98,7 @@ export const Navbar = () => {
       case "/climate-risks":
         return { title: "Climate Risk Scenarios", subtitle: "Public weather context and what-if flood simulation" };
       case "/ai-recommendations":
-        return { title: "Recommendation Examples", subtitle: "Bundled sample policy ideas for review" };
+        return { title: "Policy Decision Support", subtitle: "Review city insights and sample policy recommendations" };
       case "/sustainability":
         return { title: "Sustainability Matrix", subtitle: "Clean Energy Transition & Circular Resource Metrics" };
       case "/city-3d":
@@ -117,7 +118,7 @@ export const Navbar = () => {
 
   // Search filtering
   const searchResults = searchQuery.trim()
-    ? NAVIGATION_ITEMS.filter((item) =>
+    ? FLAT_NAVIGATION_ITEMS.filter((item) =>
       item.label.toLowerCase().includes(searchQuery.toLowerCase())
     )
     : [];
@@ -377,61 +378,38 @@ export const Navbar = () => {
             )}
           </div>
 
-          {/* Cyber Neon / Dark Mode Toggle */}
+          {/* Day / night display toggle */}
           <button
-            onClick={() => setNeonMode(!neonMode)}
+            onClick={() => setDisplayMode(displayMode === "night" ? "day" : "night")}
             className="p-2 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 text-slate-400 hover:text-cyan-300 transition-all duration-200"
-            title={neonMode ? "Cyber Neon Glow Active" : "Subtle Dark Mode"}
+            title={`Switch to ${displayMode === "night" ? "day" : "night"} mode`}
+            aria-label={`Switch to ${displayMode === "night" ? "day" : "night"} mode`}
+            aria-pressed={displayMode === "day"}
           >
-            {neonMode ? (
-              <Sparkles className="w-4 h-4 text-cyan-400" />
+            {displayMode === "night" ? (
+              <Sun className="w-4 h-4 text-amber-300" />
             ) : (
               <Moon className="w-4 h-4" />
             )}
           </button>
 
-          {/* User / Admin Profile & Logout */}
+          {/* Public demo identity */}
           <div className="flex items-center gap-2 pl-1 sm:pl-2 border-l border-slate-800">
             <div className="relative">
               <div
-                className={`w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-xs shadow-lg border ${
-                  currentUser?.authType === "admin"
-                    ? "bg-gradient-to-tr from-purple-600 via-indigo-600 to-pink-600 border-purple-400/50 shadow-purple-500/25"
-                    : "bg-gradient-to-tr from-cyan-500 via-indigo-600 to-purple-600 border-cyan-300/40 shadow-cyan-500/20"
-                }`}
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-xs shadow-lg border bg-gradient-to-tr from-cyan-500 via-indigo-600 to-purple-600 border-cyan-300/40 shadow-cyan-500/20"
               >
-                {currentUser?.avatar || "US"}
+                PD
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-950"></span>
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-sky-400 ring-2 ring-slate-950"></span>
             </div>
 
             <div className="hidden md:flex flex-col text-left">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-bold text-white tracking-tight leading-tight">
-                  {currentUser?.name || "City Operator"}
-                </span>
-                {currentUser?.authType === "admin" && (
-                  <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-purple-500/30 text-purple-300 border border-purple-500/50">
-                    ADMIN
-                  </span>
-                )}
-              </div>
+              <span className="text-xs font-bold text-white tracking-tight leading-tight">Public Demo</span>
               <span className="text-[10px] font-medium text-cyan-400/90 leading-tight">
-                {currentUser?.role || "Citizen User"}
+                Read-only access
               </span>
             </div>
-
-            {/* Logout button */}
-            <button
-              onClick={() => {
-                logout();
-                navigate("/");
-              }}
-              className="ml-1 p-2 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-rose-500/40 text-slate-400 hover:text-rose-400 hover:bg-rose-950/20 transition-all duration-200"
-              title="Logout from Simulator"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
           </div>
         </div>
       </div>

@@ -12,17 +12,14 @@ import {
   FileInput,
   Leaf,
   LineChart,
-  LogOut,
   MapPin,
   PanelsTopLeft,
   Play,
   Route,
-  ShieldCheck,
   SlidersHorizontal,
   Sparkles,
   Users,
 } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
 import { CITIES } from "../data/cityData";
 import { NAVIGATION_ITEMS } from "../components/layout/Sidebar";
 
@@ -169,7 +166,6 @@ function formatDuration(totalSeconds) {
 }
 
 export default function LandingPage() {
-  const { isLoggedIn, logout } = useAuth();
   const prefersReducedMotion = useReducedMotion();
   const [browserVisitCount, setBrowserVisitCount] = useState(0);
   const [pageSeconds, setPageSeconds] = useState(0);
@@ -358,12 +354,6 @@ export default function LandingPage() {
           <a href="#platform">Platform</a>
           <a href="#activity">Live activity</a>
         </nav>
-        {isLoggedIn && (
-          <button type="button" className="lp-logout" onClick={logout}>
-            <LogOut size={16} aria-hidden="true" />
-            Log out
-          </button>
-        )}
       </header>
       <section className="lp-hero" aria-labelledby="lp-title">
         <AnimatePresence initial={false} mode="sync">
@@ -395,8 +385,8 @@ export default function LandingPage() {
             See how city systems connect. Explore the signals shaping tomorrow, and test more sustainable ways forward.
           </p>
           <div className="lp-hero-actions">
-            <Link to={isLoggedIn ? "/dashboard" : "/login"} className="lp-btn lp-btn-user">
-              {isLoggedIn ? "Open dashboard" : "Enter the simulator"}
+            <Link to="/dashboard" className="lp-btn lp-btn-user">
+              Open public demo
               <ArrowRight size={18} aria-hidden="true" />
             </Link>
             <a href="#platform" className="lp-hero-secondary">Explore the platform <span aria-hidden="true">↓</span></a>
@@ -518,23 +508,16 @@ export default function LandingPage() {
         <div className="lp-reveal-item">
           <p className="lp-section-kicker">CONNECT WITH US</p>
           <h2 id="lp-cta-title" className="lp-section-title">
-            {isLoggedIn ? "Return to your city" : "Connect with us"}
+            Open the public demo
           </h2>
           <p className="lp-cta-desc">
-            {isLoggedIn
-              ? "Open the dashboard and continue exploring city data and planning tools."
-              : "Sign in to explore city data, forecasts, and planning tools."}
+            Explore city indicators, forecasts, and planning tools. Account and admin features are disabled in this demo.
           </p>
         </div>
         <div className="lp-cta-buttons lp-reveal-item">
-          <Link to={isLoggedIn ? "/dashboard" : "/login"} className="lp-btn lp-btn-user">
-            {isLoggedIn ? "Open dashboard" : "User login"}<ArrowRight size={18} aria-hidden="true" />
+          <Link to="/dashboard" className="lp-btn lp-btn-user">
+            Open public demo<ArrowRight size={18} aria-hidden="true" />
           </Link>
-          {!isLoggedIn && (
-            <Link to="/admin-login" className="lp-btn lp-btn-admin">
-              <ShieldCheck size={18} aria-hidden="true" />Admin login
-            </Link>
-          )}
         </div>
       </section>
 

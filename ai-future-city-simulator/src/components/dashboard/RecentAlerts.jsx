@@ -69,12 +69,12 @@ export const RecentAlerts = () => {
           <div>
             <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
               <span>CITY ALERT CENTER</span>
-              <span className="px-2 py-0.2 text-[10px] font-semibold rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                {alerts.length} Examples
+              <span className="rounded border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-semibold text-amber-200">
+                {alerts.length} Templates
               </span>
             </h3>
             <p className="text-[11px] text-slate-400">
-              Sample alert templates for {city.name} • no municipal alert feed connected
+              Illustrative alert templates for {city.name} · no municipal alert feed connected
             </p>
           </div>
         </div>
@@ -139,7 +139,7 @@ export const RecentAlerts = () => {
                         <div className="mt-2 flex items-center gap-3 text-[10px] text-slate-400">
                           <span className="text-cyan-400 font-medium">📍 {alert.location}</span>
                           <span>•</span>
-                          <span>Example scenario</span>
+                          <span>Template only</span>
                           <span>•</span>
                           <span className="text-slate-500">{alert.category}</span>
                         </div>
@@ -173,7 +173,7 @@ export const RecentAlerts = () => {
             })
           ) : (
             <div className="text-center py-8 text-xs text-slate-500">
-              No alerts matching the "{filter}" category in {city.name}.
+              No templates matching the "{filter}" category in {city.name}. Select All to view other categories.
             </div>
           )}
         </AnimatePresence>
@@ -181,7 +181,7 @@ export const RecentAlerts = () => {
 
       {/* Footer summary */}
       <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-        <span>Sample alerts only • no emergency broadcast connected</span>
+        <span>Templates only · no live or emergency alert feed connected</span>
         <button
           type="button"
           onClick={markAllAlertsAsRead}

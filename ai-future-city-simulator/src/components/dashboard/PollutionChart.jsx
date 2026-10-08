@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import {
   LineChart,
   Line,
@@ -161,17 +161,22 @@ export const PollutionChart = () => {
         </div>
 
         {/* Categories Legend */}
-        <div className="flex items-center gap-1.5 flex-wrap">
+        <div className="flex items-center gap-1.5 shrink-0">
           {AQI_LEVELS.map((level, idx) => (
             <span
               key={idx}
-              className={`px-2 py-0.5 text-[10px] font-semibold rounded-md border ${level.bg} ${level.color} ${level.border}`}
+              title={`AQI ${level.range}`}
+              className={`px-2 py-0.5 text-[10px] font-semibold rounded-md border whitespace-nowrap cursor-default ${level.bg} ${level.color} ${level.border}`}
             >
               {level.label}
             </span>
           ))}
         </div>
       </div>
+
+      <p className="mt-3 text-xs font-semibold text-slate-300">
+        Question: How does the hourly air-quality profile change through the day?
+      </p>
 
       {/* Main Stats Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 my-3">
@@ -222,8 +227,8 @@ export const PollutionChart = () => {
       </div>
       <p className="mt-2 text-[10px] text-slate-500">
         {liveTimeline.length > 1
-          ? `Chart shows the recent hourly Open-Meteo/CAMS ${aqiScale} model series.`
-          : "Chart shows the bundled sample timeline because hourly public model data is unavailable."}
+          ? `LIVE MODEL FEED: Recent hourly Open-Meteo/CAMS ${aqiScale} output, not historical municipal sensor observations.`
+          : "DEMO DATA: Bundled sample timeline; hourly public model output is unavailable. This is not observed historical air quality."}
       </p>
     </div>
   );

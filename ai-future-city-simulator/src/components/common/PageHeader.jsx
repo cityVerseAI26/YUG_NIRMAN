@@ -1,8 +1,9 @@
 ﻿import React from "react";
 import { Sparkles, Activity } from "lucide-react";
 import { useCity } from "../../context/CityContext";
+import FeatureWhy from "./FeatureWhy";
 
-export const PageHeader = ({ title, subtitle, icon: Icon, badge, actions }) => {
+export const PageHeader = ({ title, subtitle, icon: Icon, badge, actions, whyFeatureIds }) => {
   const { city } = useCity();
 
   return (
@@ -25,22 +26,20 @@ export const PageHeader = ({ title, subtitle, icon: Icon, badge, actions }) => {
                 </span>
               )}
             </div>
-            <p className="text-sm text-slate-400 mt-1 flex items-center gap-2">
+            <p className="text-sm text-slate-400 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
               <span>{subtitle}</span>
               <span className="text-slate-600">•</span>
-              <span className="text-cyan-400 font-medium">{city.name} Digital Twin</span>
+              <span className="text-cyan-400 font-medium">City: {city.name}</span>
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-medium">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span>PUBLIC / SAMPLE DATA</span>
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/70 border border-slate-700 text-slate-300 text-xs font-medium">
+            <span className="h-2 w-2 rounded-full bg-slate-400" aria-hidden="true" />
+            <span>Public and sample data</span>
           </div>
+          {whyFeatureIds && <FeatureWhy featureIds={whyFeatureIds} />}
           {actions}
         </div>
       </div>

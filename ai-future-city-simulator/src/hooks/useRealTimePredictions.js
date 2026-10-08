@@ -29,6 +29,103 @@ const readFiniteNumber = (value) => {
   return Number.isFinite(number) ? number : null;
 };
 
+/**
+ * Estimate live energy demand adjustment based on temperature.
+ * For every °C above 25°C: +1.2% grid load (cooling)
+ * For every °C below 15°C: +0.8% grid load (heating)
+ * Returns { adjustmentPct, status, source } or null if no temp available
+ */
+const estimateLiveEnergyAdjustment = (temperature) => {
+  if (temperature == null || !Number.isFinite(temperature)) return null;
+  let adjustmentPct = 0;
+  let note = "";
+  if (temperature > 25) {
+    adjustmentPct = Math.round((temperature - 25) * 1.2);
+    note = `+${adjustmentPct}% est. cooling load above 25°C`;
+  } else if (temperature < 15) {
+    adjustmentPct = Math.round((15 - temperature) * 0.8);
+    note = `+${adjustmentPct}% est. heating load below 15°C`;
+  } else {
+    note = "Neutral temperature range · moderate load";
+  }
+  return {
+    adjustmentPct,
+    note,
+    status: adjustmentPct > 20 ? "HIGH DEMAND" : adjustmentPct > 10 ? "ELEVATED" : "NOMINAL",
+    source: "Open-Meteo temperature → grid-load heuristic",
+  };
+};
+
+/**
+ * Estimate live water demand adjustment.
+ * High temp + no rain = higher demand; rain = reduced outdoor demand.
+ */
+const estimateLiveWaterAdjustment = (temperature, precipitation) => {
+  if (temperature == null || !Number.isFinite(temperature)) return null;
+  const rain = Number.isFinite(precipitation) ? precipitation : 0;
+  let adjustmentPct = 0;
+  let note = "";
+  if (rain >= 10) {
+    adjustmentPct = -15;
+    note = `−15% est. reduced demand (heavy rain ${rain} mm)`;
+  } else if (rain >= 2) {
+    adjustmentPct = -8;
+    note = `−8% est. reduced demand (rain ${rain} mm)`;
+  } else if (temperature > 30) {
+    adjustmentPct = 20;
+    note = `+20% est. peak demand (${temperature}°C, dry)`;
+  } else if (temperature > 25) {
+    adjustmentPct = 10;
+    note = `+10% est. elevated demand (${temperature}°C, dry)`;
+  } else {
+    note = "Normal temperature/precipitation range";
+  }
+  return {
+    adjustmentPct,
+    note,
+    status: adjustmentPct >= 15 ? "HIGH DEMAND" : adjustmentPct <= -10 ? "REDUCED" : "NOMINAL",
+    source: "Open-Meteo temp + precipitation → water-demand heuristic",
+  };
+};
+
+/**
+ * Estimate live traffic impact based on precipitation and visibility.
+ * Rain/fog/low-visibility increases congestion.
+ */
+const estimateLiveTrafficImpact = (precipitation, visibility, weatherCode) => {
+  if (precipitation == null && visibility == null && weatherCode == null) return null;
+  const rain = Number.isFinite(precipitation) ? precipitation : 0;
+  const vis = Number.isFinite(visibility) ? visibility : 10000;
+  let adjustmentPct = 0;
+  let note = "";
+
+  const isThunderstorm = [95, 96, 99].includes(weatherCode);
+  const isFog = [45, 48].includes(weatherCode);
+
+  if (isThunderstorm) {
+    adjustmentPct = 35;
+    note = "Thunderstorm · severe congestion likely (+35% est.)";
+  } else if (isFog || vis < 1000) {
+    adjustmentPct = 20;
+    note = `Reduced visibility (${(vis / 1000).toFixed(1)} km) · elevated congestion est.`;
+  } else if (rain >= 10) {
+    adjustmentPct = 25;
+    note = `Heavy precipitation (${rain} mm) · congestion est. +25%`;
+  } else if (rain >= 2) {
+    adjustmentPct = 12;
+    note = `Moderate rain (${rain} mm) · congestion est. +12%`;
+  } else {
+    note = "Clear/dry conditions · nominal traffic";
+  }
+
+  return {
+    adjustmentPct,
+    note,
+    status: adjustmentPct >= 25 ? "HIGH IMPACT" : adjustmentPct >= 12 ? "MODERATE IMPACT" : "NOMINAL",
+    source: "Open-Meteo precipitation + visibility → traffic-impact heuristic",
+  };
+};
+
 export function useRealTimePredictions(liveAirQuality, liveAirQualityHourly, liveWeather, liveWeatherHourly) {
   const currentAqi = readFiniteNumber(liveAirQuality?.us_aqi);
   const pm25 = readFiniteNumber(liveAirQuality?.pm2_5);
@@ -66,6 +163,16 @@ export function useRealTimePredictions(liveAirQuality, liveAirQualityHourly, liv
     .filter((point) => Number.isFinite(point.timestamp) && point.timestamp >= Date.now())
     .slice(0, 120);
 
+  // ── Live weather-derived estimates ──────────────────────────────────────────
+  const liveTemp = readFiniteNumber(liveWeather?.temperature_2m);
+  const livePrecip = readFiniteNumber(liveWeather?.precipitation);
+  const liveVis = readFiniteNumber(liveWeather?.visibility);
+  const liveWeatherCode = readFiniteNumber(liveWeather?.weather_code);
+
+  const energyEstimate = estimateLiveEnergyAdjustment(liveTemp);
+  const waterEstimate = estimateLiveWaterAdjustment(liveTemp, livePrecip);
+  const trafficEstimate = estimateLiveTrafficImpact(livePrecip, liveVis, liveWeatherCode);
+
   return {
     telemetry: {
       aqi: {
@@ -89,13 +196,42 @@ export function useRealTimePredictions(liveAirQuality, liveAirQualityHourly, liv
         condition: describeWeatherCode(readFiniteNumber(liveWeather?.weather_code)),
         observedAt: normalizeProviderTime(liveWeather?.time),
       },
-      traffic: { current: null, status: "LIVE DATA UNAVAILABLE" },
-      water: { current: null, status: "LIVE DATA UNAVAILABLE" },
-      energy: { current: null, status: "LIVE DATA UNAVAILABLE" },
-      population: { current: null, status: "LIVE DATA UNAVAILABLE" },
+      // Weather-correlated live estimates (not verified city sensors)
+      traffic: trafficEstimate
+        ? {
+            current: trafficEstimate.adjustmentPct,
+            status: trafficEstimate.status,
+            note: trafficEstimate.note,
+            source: trafficEstimate.source,
+            isLiveEstimate: true,
+          }
+        : { current: null, status: "LIVE DATA UNAVAILABLE", isLiveEstimate: false },
+      water: waterEstimate
+        ? {
+            current: waterEstimate.adjustmentPct,
+            status: waterEstimate.status,
+            note: waterEstimate.note,
+            source: waterEstimate.source,
+            isLiveEstimate: true,
+          }
+        : { current: null, status: "LIVE DATA UNAVAILABLE", isLiveEstimate: false },
+      energy: energyEstimate
+        ? {
+            current: energyEstimate.adjustmentPct,
+            status: energyEstimate.status,
+            note: energyEstimate.note,
+            source: energyEstimate.source,
+            isLiveEstimate: true,
+          }
+        : { current: null, status: "LIVE DATA UNAVAILABLE", isLiveEstimate: false },
+      population: { current: null, status: "LIVE DATA UNAVAILABLE", isLiveEstimate: false },
     },
     dynamicProjectionData,
     weatherForecastData,
+    // Convenience accessors for components
+    liveEnergyAdjustment: energyEstimate,
+    liveWaterAdjustment: waterEstimate,
+    liveTrafficImpact: trafficEstimate,
   };
 }
 

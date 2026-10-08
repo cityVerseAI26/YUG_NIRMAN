@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1200" viewBox="0 0 1600 1200" role="img" aria-labelledby="title description">
+  <title id="title">YUG NIRMAN project flow, technology, AI/ML techniques, and datasets</title>
+  <desc id="description">An infographic explaining the YUG NIRMAN urban intelligence application, its data pipeline, technology stack, current analytical methods, live API integrations, and illustrative datasets.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#06131c"/>
+      <stop offset="1" stop-color="#102b37"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#35d6bd"/>
+      <stop offset="1" stop-color="#42a5ff"/>
+    </linearGradient>
+    <style>
+      .title { font: 700 42px Arial, sans-serif; fill: #f4fbff; }
+      .subtitle { font: 400 18px Arial, sans-serif; fill: #a9c1cc; }
+      .section { font: 700 19px Arial, sans-serif; fill: #69e2d1; letter-spacing: 1px; }
+      .heading { font: 700 17px Arial, sans-serif; fill: #f3f8fa; }
+      .body { font: 400 14px Arial, sans-serif; fill: #c4d4dc; }
+      .small { font: 400 12px Arial, sans-serif; fill: #9db3bd; }
+      .badge { font: 700 11px Arial, sans-serif; fill: #08202a; letter-spacing: .6px; }
+      .panel { fill: #0a202a; stroke: #24444f; stroke-width: 1.5; }
+      .card { fill: #102b35; stroke: #31535d; stroke-width: 1.2; }
+      .flowbox { fill: #102d38; stroke: #3acdb9; stroke-width: 1.4; }
+      .arrow { stroke: #53d9c4; stroke-width: 2.2; fill: none; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8" fill="none" stroke="#53d9c4" stroke-width="1.6"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="1200" fill="url(#bg)"/>
+  <circle cx="1440" cy="90" r="180" fill="#1f9c91" opacity=".08"/>
+  <circle cx="80" cy="1120" r="220" fill="#207db6" opacity=".07"/>
+
+  <text x="64" y="74" class="title">YUG NIRMAN</text>
+  <text x="66" y="108" class="subtitle">AI-Powered Urban Digital Twin · Project flow, technology, methods &amp; data</text>
+  <rect x="64" y="132" width="1472" height="3" rx="2" fill="url(#accent)"/>
+
+  <text x="64" y="177" class="section">1 · HOW THE PROJECT FLOWS</text>
+  <g>
+    <rect x="64" y="198" width="280" height="66" rx="12" class="flowbox"/>
+    <text x="204" y="225" text-anchor="middle" class="heading">DATA SOURCES</text>
+    <text x="204" y="247" text-anchor="middle" class="small">APIs + bundled city profiles</text>
+    <path d="M346 231 H390" class="arrow" marker-end="url(#arrowhead)"/>
+
+    <rect x="398" y="198" width="280" height="66" rx="12" class="flowbox"/>
+    <text x="538" y="225" text-anchor="middle" class="heading">API / WORKER</text>
+    <text x="538" y="247" text-anchor="middle" class="small">Fetches + proxies selected services</text>
+    <path d="M680 231 H724" class="arrow" marker-end="url(#arrowhead)"/>
+
+    <rect x="732" y="198" width="280" height="66" rx="12" class="flowbox"/>
+    <text x="872" y="225" text-anchor="middle" class="heading">VALIDATE + NORMALIZE</text>
+    <text x="872" y="247" text-anchor="middle" class="small">Keep source, time, units &amp; status</text>
+    <path d="M1014 231 H1058" class="arrow" marker-end="url(#arrowhead)"/>
+
+    <rect x="1066" y="198" width="280" height="66" rx="12" class="flowbox"/>
+    <text x="1206" y="225" text-anchor="middle" class="heading">UNIFIED CITY STATE</text>
+    <text x="1206" y="247" text-anchor="middle" class="small">Selected city + available readings</text>
+    <path d="M1348 231 H1392" class="arrow" marker-end="url(#arrowhead)"/>
+
+    <rect x="1400" y="198" width="136" height="66" rx="12" class="flowbox"/>
+    <text x="1468" y="225" text-anchor="middle" class="heading">ANALYZE</text>
+    <text x="1468" y="247" text-anchor="middle" class="small">Rules</text>
+  </g>
+  <path d="M1468 266 V289 H204 V266" class="arrow" marker-end="url(#arrowhead)"/>
+  <g>
+    <rect x="64" y="302" width="350" height="62" rx="11" class="card"/>
+    <text x="239" y="328" text-anchor="middle" class="heading">DASHBOARDS + CHARTS</text>
+    <text x="239" y="349" text-anchor="middle" class="small">KPIs, forecasts, risks &amp; status</text>
+    <path d="M416 333 H455" class="arrow" marker-end="url(#arrowhead)"/>
+    <rect x="463" y="302" width="350" height="62" rx="11" class="card"/>
+    <text x="638" y="328" text-anchor="middle" class="heading">2D MAP + 3D TWIN</text>
+    <text x="638" y="349" text-anchor="middle" class="small">Spatial context and city view</text>
+    <path d="M815 333 H854" class="arrow" marker-end="url(#arrowhead)"/>
+    <rect x="862" y="302" width="350" height="62" rx="11" class="card"/>
+    <text x="1037" y="328" text-anchor="middle" class="heading">WHAT-IF + REPORT SNAPSHOT</text>
+    <text x="1037" y="349" text-anchor="middle" class="small">Illustrative scenarios + exports</text>
+    <path d="M1214 333 H1253" class="arrow" marker-end="url(#arrowhead)"/>
+    <rect x="1261" y="302" width="275" height="62" rx="11" class="card"/>
+    <text x="1398" y="328" text-anchor="middle" class="heading">DECISION SUPPORT</text>
+    <text x="1398" y="349" text-anchor="middle" class="small">Verify before operational use</text>
+  </g>
+
+  <text x="64" y="411" class="section">2 · TECHNOLOGY STACK</text>
+  <g>
+    <rect x="64" y="430" width="350" height="130" rx="13" class="panel"/>
+    <text x="84" y="460" class="heading">FRONTEND</text>
+    <text x="84" y="486" class="body">React + JavaScript / JSX</text>
+    <text x="84" y="508" class="body">Vite · Tailwind CSS · Framer Motion</text>
+    <text x="84" y="533" class="small">UI, responsive styling, animations</text>
+
+    <rect x="432" y="430" width="350" height="130" rx="13" class="panel"/>
+    <text x="452" y="460" class="heading">VISUALIZATION</text>
+    <text x="452" y="486" class="body">Recharts · Leaflet / React Leaflet</text>
+    <text x="452" y="508" class="body">Three.js</text>
+    <text x="452" y="533" class="small">Charts · 2D maps · 3D city view</text>
+
+    <rect x="800" y="430" width="350" height="130" rx="13" class="panel"/>
+    <text x="820" y="460" class="heading">API / EDGE</text>
+    <text x="820" y="486" class="body">Cloudflare Workers</text>
+    <text x="820" y="508" class="body">External provider APIs</text>
+    <text x="820" y="533" class="small">Server-side proxying for selected feeds</text>
+
+    <rect x="1168" y="430" width="368" height="130" rx="13" class="panel"/>
+    <text x="1188" y="460" class="heading">REPORTS + QUALITY</text>
+    <text x="1188" y="486" class="body">jsPDF · JSON / CSV · browser print</text>
+    <text x="1188" y="508" class="body">Node.js tests · Oxlint</text>
+    <text x="1188" y="533" class="small">Snapshot-based report and checks</text>
+  </g>
+
+  <text x="64" y="607" class="section">3 · AI / ML TECHNIQUES — WHAT IS ACTUALLY USED</text>
+  <g>
+    <rect x="64" y="626" width="710" height="212" rx="13" class="panel"/>
+    <rect x="84" y="646" width="162" height="23" rx="11" fill="#4fe0c2"/>
+    <text x="165" y="662" text-anchor="middle" class="badge">IN-APP METHODS</text>
+    <text x="86" y="698" class="heading">Rule-based threshold screening</text>
+    <text x="86" y="719" class="body">Available values are compared with configured thresholds.</text>
+    <text x="86" y="749" class="heading">Deterministic scenario arithmetic</text>
+    <text x="86" y="770" class="body">User inputs and profile baselines produce illustrative deltas.</text>
+    <text x="86" y="800" class="heading">Arithmetic-mean KPI aggregation</text>
+    <text x="86" y="821" class="body">City Health averages valid normalized dimensions; not a validated index.</text>
+
+    <rect x="794" y="626" width="742" height="212" rx="13" class="panel"/>
+    <rect x="814" y="646" width="188" height="23" rx="11" fill="#75b9ff"/>
+    <text x="908" y="662" text-anchor="middle" class="badge">EXTERNAL MODEL OUTPUT</text>
+    <text x="816" y="698" class="heading">Provider-generated forecasts</text>
+    <text x="816" y="719" class="body">Open-Meteo supplies weather and air-quality model forecasts.</text>
+    <text x="816" y="749" class="heading">Not currently a trained YUG NIRMAN ML model</text>
+    <text x="816" y="770" class="body">No project-trained Random Forest, XGBoost, LSTM, neural net, or connected generative AI was identified.</text>
+    <text x="816" y="800" class="heading">Validation status</text>
+    <text x="816" y="821" class="body">Forecast accuracy and local calibration are not established.</text>
+  </g>
+
+  <text x="64" y="884" class="section">4 · DATASETS &amp; LIVE DATA SOURCES</text>
+  <g>
+    <rect x="64" y="903" width="710" height="231" rx="13" class="panel"/>
+    <rect x="84" y="923" width="125" height="23" rx="11" fill="#59dfbe"/>
+    <text x="146" y="939" text-anchor="middle" class="badge">API / LIVE-CAPABLE</text>
+    <text x="86" y="975" class="heading">Open-Meteo · weather + air-quality model</text>
+    <text x="86" y="996" class="body">Selected-city coordinates; provider forecasts, not local official station readings.</text>
+    <text x="86" y="1026" class="heading">Sensor.Community · nearby community stations</text>
+    <text x="86" y="1047" class="body">Live when stations respond; local coverage and device quality vary.</text>
+    <text x="86" y="1077" class="heading">TomTom Flow Segment · nearby-road traffic</text>
+    <text x="86" y="1098" class="body">Production success is unverified; earlier probes returned upstream errors.</text>
+
+    <rect x="794" y="903" width="742" height="231" rx="13" class="panel"/>
+    <rect x="814" y="923" width="163" height="23" rx="11" fill="#ffd17b"/>
+    <text x="895" y="939" text-anchor="middle" class="badge">BUNDLED / ILLUSTRATIVE</text>
+    <text x="816" y="975" class="heading">Population · rounded planning estimates + assumed growth</text>
+    <text x="816" y="996" class="body">Not a verified live Census feed; legacy series may be simulated.</text>
+    <text x="816" y="1026" class="heading">Water, energy, infrastructure · city profiles and formulas</text>
+    <text x="816" y="1047" class="body">No verified municipal utility or asset telemetry was identified.</text>
+    <text x="816" y="1077" class="heading">Maps · OpenStreetMap / Overpass + bundled features</text>
+    <text x="816" y="1098" class="body">Community map coverage is not a verified complete city boundary.</text>
+  </g>
+  <rect x="64" y="1150" width="1472" height="32" rx="8" fill="#183744"/>
+  <text x="800" y="1171" text-anchor="middle" class="small">Important: “live-capable” describes the integration in code, not guaranteed current service. Values should retain source, timestamp and status.</text>
+</svg>

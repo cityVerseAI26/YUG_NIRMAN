@@ -1,26 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { motion, useReducedMotion } from "framer-motion";
-import { Building2, ChevronLeft, ChevronRight, LogOut, Pause, Play } from "lucide-react";
+import { Building2, ChevronLeft, ChevronRight } from "lucide-react";
 import BrandMark from "../components/common/BrandMark";
-import { useAuth } from "../context/AuthContext";
 import { CITIES } from "../data/cityData";
 import { useCity } from "../context/CityContext";
-import { recordUserAction } from "../utils/userHistory";
 
 const CITY_OPTIONS = Object.values(CITIES);
 
 export default function CitySelection() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, logout } = useAuth();
   const { setSelectedCity } = useCity();
-  const prefersReducedMotion = useReducedMotion();
   const [cityImages, setCityImages] = useState({});
   const [searchText, setSearchText] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("all");
-  const [orbitStartIndex, setOrbitStartIndex] = useState(0);
-  const [orbitPaused, setOrbitPaused] = useState(false);
+  const [fanStartIndex, setFanStartIndex] = useState(0);
+  const [fanExpanded, setFanExpanded] = useState(false);
   const countries = [...new Set(CITY_OPTIONS.map((city) => city.country))].sort();
   const filteredCities = CITY_OPTIONS.filter((city) => {
     const matchesSearch = `${city.name} ${city.country} ${city.state}`
@@ -28,18 +23,10 @@ export default function CitySelection() {
       .includes(searchText.trim().toLowerCase());
     return matchesSearch && (selectedCountry === "all" || city.country === selectedCountry);
   });
-  const orbitCities = Array.from(
+  const fanCities = Array.from(
     { length: Math.min(6, filteredCities.length) },
-    (_, slot) => filteredCities[(orbitStartIndex + slot) % filteredCities.length]
+    (_, slot) => filteredCities[(fanStartIndex + slot) % filteredCities.length]
   );
-
-  useEffect(() => {
-    if (prefersReducedMotion || orbitPaused || filteredCities.length < 2) return undefined;
-    const orbitTimer = window.setInterval(() => {
-      setOrbitStartIndex((current) => (current + 1) % filteredCities.length);
-    }, 4200);
-    return () => window.clearInterval(orbitTimer);
-  }, [filteredCities.length, orbitPaused, prefersReducedMotion]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -88,21 +75,12 @@ export default function CitySelection() {
   }, []);
 
   const handleChooseCity = (cityId) => {
-    const chosenCity = CITY_OPTIONS.find((city) => city.id === cityId);
-    if (currentUser?.authType === "user" && chosenCity) {
-      recordUserAction(currentUser, "/select-city", chosenCity, `Selected city: ${chosenCity.name}`);
-    }
     setSelectedCity(cityId);
     const requestedPath = location.state?.from?.pathname;
     const returnPath = typeof requestedPath === "string" && requestedPath.startsWith("/") && !requestedPath.startsWith("//")
       ? requestedPath
       : "/dashboard";
     navigate(returnPath, { replace: true });
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate("/", { replace: true });
   };
 
   return (
@@ -121,20 +99,13 @@ export default function CitySelection() {
               <small className="text-[10px] text-slate-500 tracking-[0.16em]">YUG NIRMAN</small>
             </span>
           </Link>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-700 bg-slate-900/70 text-slate-300 hover:text-white hover:border-cyan-500/50 transition-colors text-sm"
-          >
-            <LogOut size={16} />
-            Log out
-          </button>
+          <span className="rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-xs text-cyan-200">Public demo · read-only</span>
         </header>
 
         <section className="text-center mb-4">
           <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white">Choose a city</h1>
           <p className="mt-1 text-sm text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            {currentUser?.name ? `Welcome, ${currentUser.name}. ` : ""}Choose from {CITY_OPTIONS.length} cities in India and around the world.
+            Choose from {CITY_OPTIONS.length} cities in India and around the world.
           </p>
         </section>
 
@@ -142,14 +113,14 @@ export default function CitySelection() {
           <input
             type="search"
             value={searchText}
-            onChange={(event) => { setSearchText(event.target.value); setOrbitStartIndex(0); }}
+            onChange={(event) => { setSearchText(event.target.value); setFanStartIndex(0); }}
             placeholder="Search city or country…"
             aria-label="Search cities and countries"
             className="w-full rounded-xl border border-cyan-500/25 bg-slate-950/80 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-400"
           />
           <select
             value={selectedCountry}
-            onChange={(event) => { setSelectedCountry(event.target.value); setOrbitStartIndex(0); }}
+            onChange={(event) => { setSelectedCountry(event.target.value); setFanStartIndex(0); }}
             aria-label="Filter cities by country"
             className="rounded-xl border border-cyan-500/25 bg-slate-950/80 px-3 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400"
           >
@@ -160,33 +131,43 @@ export default function CitySelection() {
           </select>
         </div>
 
-        {orbitCities.length > 0 && (
-          <section className="city-orbit-section" aria-label="Rotating city selector">
-            <div className="city-orbit-stage">
-              <div className="city-orbit-ring" aria-hidden="true" />
-              <div className="city-orbit-center" aria-hidden="true">
-                <span className="city-orbit-center-mark"><BrandMark className="h-8 w-8" /></span>
+        {fanCities.length > 0 && (
+          <section className="city-orbit-section" aria-label="Featured cities">
+            <div
+              className={`city-orbit-stage${fanExpanded ? " is-expanded" : ""}`}
+              onPointerEnter={() => setFanExpanded(true)}
+              onPointerLeave={() => setFanExpanded(false)}
+              onFocusCapture={() => setFanExpanded(true)}
+              onBlurCapture={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) setFanExpanded(false);
+              }}
+            >
+              <div className="city-fan-count" aria-live="polite">
                 <strong>{filteredCities.length}</strong>
                 <span>{filteredCities.length === 1 ? "CITY" : "CITIES"}</span>
               </div>
-              <motion.div
-                className="city-orbit-rotor"
-                animate={prefersReducedMotion || orbitPaused ? { rotate: 0 } : { rotate: 360 }}
-                transition={prefersReducedMotion || orbitPaused ? { duration: 0 } : { duration: 48, ease: "linear", repeat: Infinity }}
-              >
-                {orbitCities.map((city, index) => {
-                  const angle = `${index * (360 / orbitCities.length)}deg`;
+              <div className="city-card-fan">
+                {fanCities.map((city, index) => {
+                  const offset = index - (fanCities.length - 1) / 2;
                   return (
-                    <div key={city.id} className="city-orbit-position" style={{ "--orbit-angle": angle }}>
+                    <div
+                      key={city.id}
+                      className="city-orbit-position"
+                      style={{
+                        "--fan-index": index + 1,
+                        "--fan-angle": `${offset * 5}deg`,
+                        "--fan-x": `${offset * 30}px`,
+                        "--fan-x-open": `${offset * 65}px`,
+                        "--fan-x-mobile": `${offset * 4}%`,
+                        "--fan-x-open-mobile": `${offset * 8}%`,
+                        "--fan-delay": `${index * 75}ms`,
+                      }}
+                    >
                       <button
                         type="button"
                         onClick={() => handleChooseCity(city.id)}
                         aria-label={`Choose ${city.name}, ${city.country}`}
                         className="city-orbit-card"
-                        style={{
-                          "--orbit-counter-angle": `-${angle}`,
-                          animationPlayState: prefersReducedMotion || orbitPaused ? "paused" : "running",
-                        }}
                       >
                         {cityImages[city.id] && <img src={cityImages[city.id]} alt="" loading="lazy" />}
                         <span className="city-orbit-card-shade" aria-hidden="true" />
@@ -198,26 +179,27 @@ export default function CitySelection() {
                     </div>
                   );
                 })}
-              </motion.div>
+              </div>
             </div>
             <div className="city-orbit-controls">
               <button
                 type="button"
-                onClick={() => setOrbitStartIndex((current) => (current - 1 + filteredCities.length) % filteredCities.length)}
-                aria-label="Previous cities on orbit"
+                onClick={() => setFanStartIndex((current) => (current - 1 + filteredCities.length) % filteredCities.length)}
+                aria-label="Previous featured cities"
                 title="Previous cities"
+                disabled={filteredCities.length < 2}
               >
                 <ChevronLeft size={16} aria-hidden="true" />
               </button>
-              <button type="button" onClick={() => setOrbitPaused((paused) => !paused)}>
-                {orbitPaused ? <Play size={14} aria-hidden="true" /> : <Pause size={14} aria-hidden="true" />}
-                {orbitPaused ? "Resume rotation" : "Pause rotation"}
-              </button>
+              <span className="city-orbit-count" aria-live="polite">
+                {fanCities.length} featured · {filteredCities.length} total
+              </span>
               <button
                 type="button"
-                onClick={() => setOrbitStartIndex((current) => (current + 1) % filteredCities.length)}
-                aria-label="Next cities on orbit"
+                onClick={() => setFanStartIndex((current) => (current + 1) % filteredCities.length)}
+                aria-label="Next featured cities"
                 title="Next cities"
+                disabled={filteredCities.length < 2}
               >
                 <ChevronRight size={16} aria-hidden="true" />
               </button>

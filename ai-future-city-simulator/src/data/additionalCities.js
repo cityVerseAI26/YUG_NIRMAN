@@ -1,6 +1,6 @@
 // City centers for additional map destinations. Coordinates use WGS84 latitude/longitude.
-// Population and dashboard KPIs are intentionally not included; these catalog-only
-// destinations use the app's clearly labeled illustrative simulator profile.
+// Population estimates are cataloged separately; dashboard KPIs use the
+// app's clearly labeled illustrative simulator profile.
 export const ADDITIONAL_CITIES = [
   { id: "ahmedabad", name: "Ahmedabad", state: "Gujarat", country: "India", coordinates: [23.0225, 72.5714] },
   { id: "surat", name: "Surat", state: "Gujarat", country: "India", coordinates: [21.1702, 72.8311] },

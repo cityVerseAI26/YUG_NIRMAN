@@ -141,10 +141,10 @@ export default function MessagesCenter() {
   const canCompose = !isAdmin || adminRoom === "team" || Boolean(selectedUserEmail);
 
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-9rem)] w-full max-w-7xl flex-col overflow-hidden rounded-xl border border-slate-700/70 bg-[#0a1511] text-slate-100 shadow-2xl shadow-black/20">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-700/70 bg-[#0e1d17] px-4 py-4 sm:px-6">
+    <main className="messages-center-shell mx-auto flex min-h-[calc(100vh-9rem)] w-full max-w-7xl flex-col overflow-hidden rounded-xl border border-slate-700/70 bg-[#0a1511] text-slate-100 shadow-2xl shadow-black/20">
+      <header className="messages-center-header flex flex-wrap items-center justify-between gap-4 border-b border-slate-700/70 bg-[#0e1d17] px-4 py-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#70e2d0]/25 bg-[#70e2d0]/10 text-[#70e2d0]">
+          <span className="messages-center-mark grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#70e2d0]/25 bg-[#70e2d0]/10 text-[#70e2d0]">
             {isAdmin ? <Users className="h-5 w-5" aria-hidden="true" /> : <MessageCircle className="h-5 w-5" aria-hidden="true" />}
           </span>
           <div className="min-w-0">
@@ -155,7 +155,7 @@ export default function MessagesCenter() {
           </div>
         </div>
         {isAdmin ? (
-          <Link to="/admin-dashboard" className="inline-flex min-h-9 items-center gap-2 rounded-md border border-slate-600 px-3 text-xs font-semibold text-slate-200 transition-colors hover:border-[#70e2d0]/50 hover:text-[#70e2d0]">
+          <Link to="/admin-dashboard" className="messages-center-header-link inline-flex min-h-9 items-center gap-2 rounded-md border border-slate-600 px-3 text-xs font-semibold text-slate-200 transition-colors hover:border-[#70e2d0]/50 hover:text-[#70e2d0]">
             <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
             Activity monitor
           </Link>
@@ -164,15 +164,15 @@ export default function MessagesCenter() {
         )}
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+      <div className="messages-center-body flex min-h-0 flex-1 flex-col md:flex-row">
         {isAdmin && (
-          <aside className="w-full shrink-0 border-b border-slate-700/70 bg-[#0c1914] md:w-64 md:border-b-0 md:border-r">
+          <aside className="messages-center-sidebar w-full shrink-0 border-b border-slate-700/70 bg-[#0c1914] md:w-64 md:border-b-0 md:border-r">
             <div className="p-3">
               <button
                 type="button"
                 onClick={() => { setAdminRoom("team"); setSelectedUserEmail(""); }}
                 aria-pressed={adminRoom === "team"}
-                className={`flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left text-xs font-semibold transition-colors ${adminRoom === "team" ? "bg-[#70e2d0]/10 text-[#a5f3e5]" : "text-slate-300 hover:bg-white/[0.04]"}`}
+                className={`messages-center-thread flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left text-xs font-semibold transition-colors ${adminRoom === "team" ? "is-active bg-[#70e2d0]/10 text-[#a5f3e5]" : "text-slate-300 hover:bg-white/[0.04]"}`}
               >
                 <Users className="h-4 w-4" aria-hidden="true" />
                 Admin team room
@@ -185,7 +185,7 @@ export default function MessagesCenter() {
                     key={thread.email}
                     onClick={() => { setAdminRoom("support"); setSelectedUserEmail(thread.email); }}
                     aria-pressed={adminRoom === "support" && selectedUserEmail === thread.email}
-                    className={`flex min-h-12 w-full items-center gap-2.5 rounded-md px-3 text-left transition-colors ${adminRoom === "support" && selectedUserEmail === thread.email ? "bg-[#70e2d0]/10" : "hover:bg-white/[0.04]"}`}
+                    className={`messages-center-thread flex min-h-12 w-full items-center gap-2.5 rounded-md px-3 text-left transition-colors ${adminRoom === "support" && selectedUserEmail === thread.email ? "is-active bg-[#70e2d0]/10" : "hover:bg-white/[0.04]"}`}
                   >
                     <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-slate-600 bg-white/[0.03] font-mono text-[10px] font-bold text-slate-300">{thread.avatar || "U"}</span>
                     <span className="min-w-0 flex-1">
@@ -200,8 +200,8 @@ export default function MessagesCenter() {
           </aside>
         )}
 
-        <section className="flex min-h-[520px] min-w-0 flex-1 flex-col" aria-label={roomTitle}>
-          <div className="flex items-center justify-between gap-3 border-b border-slate-700/60 px-4 py-3 sm:px-5">
+        <section className="messages-center-conversation flex min-h-[520px] min-w-0 flex-1 flex-col" aria-label={roomTitle}>
+          <div className="messages-center-conversation-header flex items-center justify-between gap-3 border-b border-slate-700/60 px-4 py-3 sm:px-5">
             <div className="flex min-w-0 items-center gap-2.5">
               <MessageSquare className="h-4 w-4 shrink-0 text-[#70e2d0]" aria-hidden="true" />
               <div className="min-w-0">
@@ -212,12 +212,12 @@ export default function MessagesCenter() {
             {isAdmin && adminRoom === "team" && <span className="text-[10px] uppercase tracking-[0.1em] text-slate-500">Admins only</span>}
           </div>
 
-          <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-4 sm:px-5" aria-live="polite">
+          <div className="messages-center-feed flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-4 sm:px-5" aria-live="polite">
             {activeMessages.length > 0 ? activeMessages.map((message) => {
               const isOwnMessage = message.senderEmail === currentUser?.email?.toLowerCase();
               return (
-                <article key={message.id} className={`group flex ${isOwnMessage ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[min(85%,38rem)] rounded-lg border px-3.5 py-2.5 ${isOwnMessage ? "border-[#70e2d0]/20 bg-[#70e2d0]/[0.08]" : "border-slate-700 bg-white/[0.025]"}`}>
+                <article key={message.id} className={`messages-center-message group flex ${isOwnMessage ? "justify-end" : "justify-start"}`}>
+                  <div className={`messages-center-bubble max-w-[min(85%,38rem)] rounded-lg border px-3.5 py-2.5 ${isOwnMessage ? "is-own border-[#70e2d0]/20 bg-[#70e2d0]/[0.08]" : "is-incoming border-slate-700 bg-white/[0.025]"}`}>
                     <div className="mb-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
                       <span className={`text-[11px] font-semibold ${message.senderRole === "admin" ? "text-[#70e2d0]" : "text-slate-200"}`}>{message.senderName}</span>
                       <time className="text-[10px] text-slate-500" dateTime={new Date(message.sentAt).toISOString()}>{formatMessageTime(message.sentAt)}</time>
@@ -227,7 +227,7 @@ export default function MessagesCenter() {
                           onClick={() => handleDelete(message)}
                           aria-label={`Delete message from ${message.senderName}`}
                           title="Delete message"
-                          className="ml-auto inline-flex h-7 w-7 shrink-0 items-center justify-center rounded text-slate-500 transition-colors hover:bg-rose-400/10 hover:text-rose-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-300 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
+                          className="messages-center-delete ml-auto inline-flex h-7 w-7 shrink-0 items-center justify-center rounded text-slate-500 transition-colors hover:bg-rose-400/10 hover:text-rose-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-300 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
                         >
                           <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                         </button>
@@ -238,7 +238,7 @@ export default function MessagesCenter() {
                 </article>
               );
             }) : (
-              <div className="m-auto max-w-sm px-5 py-12 text-center">
+              <div className="messages-center-empty m-auto max-w-sm px-5 py-12 text-center">
                 <span className="mx-auto grid h-11 w-11 place-items-center rounded-lg border border-[#70e2d0]/20 bg-[#70e2d0]/[0.07] text-[#70e2d0]"><MessageCircle className="h-5 w-5" aria-hidden="true" /></span>
                 <h3 className="mt-3 text-sm font-semibold text-white">{canCompose ? "Start the conversation" : "Choose a user conversation"}</h3>
                 <p className="mt-1.5 text-xs leading-relaxed text-slate-500">{canCompose ? "Messages appear here for this room." : "Select a user from the support list to read and reply."}</p>
@@ -248,7 +248,7 @@ export default function MessagesCenter() {
           </div>
 
           {messageError && <p className="px-4 pb-2 text-xs text-rose-300" role="alert">{messageError}</p>}
-          <form onSubmit={handleSend} className="border-t border-slate-700/70 bg-[#0d1914] p-3 sm:p-4">
+          <form onSubmit={handleSend} className="messages-center-compose border-t border-slate-700/70 bg-[#0d1914] p-3 sm:p-4">
             <div className="flex items-end gap-2">
               <textarea
                 value={draft}
@@ -258,12 +258,12 @@ export default function MessagesCenter() {
                 maxLength={2000}
                 rows={2}
                 disabled={!canCompose}
-                className="min-h-11 min-w-0 flex-1 resize-y rounded-md border border-slate-700 bg-black/20 px-3 py-2.5 text-sm text-slate-100 outline-none transition-colors placeholder:text-slate-600 focus:border-[#70e2d0]/55 disabled:cursor-not-allowed disabled:opacity-50"
+                className="messages-center-input min-h-11 min-w-0 flex-1 resize-y rounded-md border border-slate-700 bg-black/20 px-3 py-2.5 text-sm text-slate-100 outline-none transition-colors placeholder:text-slate-600 focus:border-[#70e2d0]/55 disabled:cursor-not-allowed disabled:opacity-50"
               />
               <button
                 type="submit"
                 disabled={!canCompose || !draft.trim()}
-                className="inline-flex h-11 shrink-0 items-center gap-2 rounded-md bg-[#70e2d0] px-3.5 text-xs font-bold text-[#10201b] transition-colors hover:bg-[#a1f2e5] disabled:cursor-not-allowed disabled:opacity-40"
+                className="messages-center-send inline-flex h-11 shrink-0 items-center gap-2 rounded-md bg-[#70e2d0] px-3.5 text-xs font-bold text-[#10201b] transition-colors hover:bg-[#a1f2e5] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Send className="h-4 w-4" aria-hidden="true" />
                 Send

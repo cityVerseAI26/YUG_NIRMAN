@@ -180,3 +180,36 @@
     }
   ]
 };
+
+export const createSampleAlertTemplates = (city) => [
+  {
+    id: `${city.id}-template-transport`,
+    priority: "medium",
+    title: "Traffic conditions review",
+    description: "Example alert template for reviewing congestion on a monitored corridor. Connect a verified traffic feed to show current conditions.",
+    location: "Citywide template",
+    timestamp: "Template",
+    category: "Transportation",
+    read: false,
+  },
+  {
+    id: `${city.id}-template-environment`,
+    priority: "warning",
+    title: "Air quality monitoring notice",
+    description: "Example alert template for an air-quality threshold notice. No current reading or local monitoring station is connected here.",
+    location: "Citywide template",
+    timestamp: "Template",
+    category: "Environment",
+    read: false,
+  },
+  {
+    id: `${city.id}-template-resources`,
+    priority: "medium",
+    title: "Water and infrastructure review",
+    description: "Example alert template for utility planning and infrastructure review. Connect verified municipal data before treating this as an active alert.",
+    location: "Citywide template",
+    timestamp: "Template",
+    category: "Resources",
+    read: false,
+  },
+];

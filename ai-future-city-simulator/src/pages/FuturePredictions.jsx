@@ -34,18 +34,29 @@ import {
 } from "recharts";
 import { useCity } from "../context/CityContext";
 import { useAuth } from "../context/AuthContext";
-import { useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import PageHeader from "../components/common/PageHeader";
+import BeforeAfterComparison from "../components/common/BeforeAfterComparison";
 import { useRealTimePredictions } from "../hooks/useRealTimePredictions";
+import useCurrentPopulationEstimate from "../hooks/useCurrentPopulationEstimate";
 import YugNirmanMark from "../assets/yug-nirman-mark.svg";
 import { archivePredictionReport } from "../utils/predictionReportArchive";
+import {
+  ASSUMED_ANNUAL_POPULATION_GROWTH_RATE,
+  POPULATION_PROJECTION_YEARS,
+  projectPopulationEstimate,
+} from "../utils/populationProjection";
+import { normalizeCityTransformation, summarizeTransformation } from "../utils/cityTransformation";
+import CityTransformation from "../components/common/CityTransformation";
 
 const readNumericValue = (value) => {
   const parsed = typeof value === "number" ? value : Number.parseFloat(String(value ?? ""));
   return Number.isFinite(parsed) ? parsed : null;
 };
 
-const SCENARIO_YEARS = ["2027", "2030", "2035", "2040"];
+const CENSUS_POPULATION_SOURCE = "U.S. Census Bureau Population Estimates Program";
+
+const formatPopulationMillions = (population) => `${(population / 1_000_000).toFixed(1)}M`;
 
 const projectMetric = (city, forecastKey, baseline, targetYear) => {
   const points = [
@@ -412,11 +423,43 @@ export const FuturePredictions = ({ reportOnly = false }) => {
     refreshLiveData,
   } = useCity();
   const { currentUser } = useAuth();
+  const populationResult = useCurrentPopulationEstimate(city);
+  const populationEstimate = populationResult.estimate;
 
   const [forecastHours, setForecastHours] = useState(24);
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const cityTransformation = useMemo(
+    () => normalizeCityTransformation(location.state?.cityTransformation, city.id),
+    [city.id, location.state],
+  );
+  const demoScenarioParam = searchParams.get("demoScenario");
+  const demoScenario = useMemo(() => {
+    if (!demoScenarioParam) return null;
+    try {
+      const parsed = JSON.parse(demoScenarioParam);
+      const numericValues = [parsed.trafficBefore, parsed.trafficAfter, parsed.aqiBefore, parsed.aqiAfter];
+      const decisionLabels = {
+        "transit-first": "Transit-first mix",
+        "green-corridor": "Green corridor",
+        "dynamic-pricing": "Dynamic pricing",
+      };
+      if (parsed.cityId !== city.id || !decisionLabels[parsed.optionId]
+        || numericValues.some((value) => !Number.isFinite(value) || value < 0 || value > 1000)) return null;
+      return {
+        intervention: decisionLabels[parsed.optionId],
+        trafficBefore: parsed.trafficBefore,
+        trafficAfter: parsed.trafficAfter,
+        aqiBefore: parsed.aqiBefore,
+        aqiAfter: parsed.aqiAfter,
+        aqiSource: parsed.aqiSource === "Open-Meteo modeled AQI" ? "Open-Meteo modeled AQI" : "Bundled city profile AQI",
+      };
+    } catch {
+      return null;
+    }
+  }, [city.id, demoScenarioParam]);
   const requestedScenarioYear = searchParams.get("year");
-  const scenarioYear = SCENARIO_YEARS.includes(requestedScenarioYear) ? requestedScenarioYear : "2030";
+  const scenarioYear = POPULATION_PROJECTION_YEARS.includes(requestedScenarioYear) ? requestedScenarioYear : "2030";
   const [generatedReport, setGeneratedReport] = useState(null);
   const [reportNotice, setReportNotice] = useState("");
   const { telemetry, dynamicProjectionData, weatherForecastData } = useRealTimePredictions(
@@ -439,15 +482,106 @@ export const FuturePredictions = ({ reportOnly = false }) => {
     return closest;
   }, null), [targetTimestamp, weatherForecastData]);
   const scenarioOutlook = city.forecasts?.[scenarioYear] ?? null;
-  const scenarioMetrics = scenarioOutlook
-    ? [
-        { label: "Population", value: scenarioOutlook.population, icon: Users },
+  const scenarioSourceLabel = city.dataMode === "illustrative"
+    ? "Mumbai reference-city scenario values (illustrative, not observed for this city)"
+    : "bundled illustrative city scenario values";
+  const populationProjection = useMemo(
+    () => projectPopulationEstimate(populationEstimate, Number(scenarioYear)),
+    [populationEstimate, scenarioYear]
+  );
+  const scenarioMetrics = [
+        {
+          label: populationProjection?.method === "census-trend"
+            ? "Population · Census trend"
+            : populationProjection
+              ? "Population · assumed trend"
+              : "Population · trend unavailable",
+          value: populationProjection ? formatPopulationMillions(populationProjection.projected) : "Unavailable",
+          icon: Users,
+          detail: populationProjection?.method === "census-trend"
+            ? `Annualized Census trend from ${populationProjection.baselineYear}; not an official forecast`
+            : populationProjection
+              ? `Assumed ${(ASSUMED_ANNUAL_POPULATION_GROWTH_RATE * 100).toFixed(0)}% annual growth; not observed`
+              : "No suitable population estimate; stored demo value suppressed",
+        },
+        ...(scenarioOutlook ? [
         { label: "Road traffic", value: scenarioOutlook.traffic, icon: Car },
         { label: "Air quality", value: `${scenarioOutlook.aqi} AQI`, icon: Wind },
         { label: "Water demand", value: scenarioOutlook.waterDemand, icon: Droplet },
         { label: "Energy load", value: scenarioOutlook.energyUsage, icon: Zap },
-      ]
-    : [];
+        ] : []),
+      ];
+  const annualComparisonItems = [
+    ...(populationProjection ? [{
+      label: "Population",
+      before: formatPopulationMillions(populationProjection.baseline),
+      beforeValue: populationProjection.baseline / 1_000_000,
+      after: formatPopulationMillions(populationProjection.projected),
+      afterValue: populationProjection.projected / 1_000_000,
+      unit: "M residents",
+      higherIsBetter: null,
+    }] : []),
+    ...(scenarioOutlook ? [
+          {
+            label: "Road traffic pressure",
+            before: city.metrics.traffic.display,
+            beforeValue: readNumericValue(city.metrics.traffic.value),
+            after: scenarioOutlook.traffic,
+            afterValue: readNumericValue(scenarioOutlook.traffic),
+            unit: "index points",
+            higherIsBetter: false,
+          },
+          {
+            label: "Air quality (AQI)",
+            before: city.metrics.aqi.display,
+            beforeValue: readNumericValue(city.metrics.aqi.value),
+            after: `${scenarioOutlook.aqi} AQI`,
+            afterValue: readNumericValue(scenarioOutlook.aqi),
+            unit: "AQI points",
+            higherIsBetter: false,
+          },
+          {
+            label: "Water demand",
+            before: city.metrics.waterDemand.display,
+            beforeValue: readNumericValue(city.metrics.waterDemand.value),
+            after: scenarioOutlook.waterDemand,
+            afterValue: readNumericValue(scenarioOutlook.waterDemand),
+            unit: "index points",
+            higherIsBetter: false,
+          },
+          {
+            label: "Energy load",
+            before: city.metrics.energyUsage.display,
+            beforeValue: readNumericValue(city.metrics.energyUsage.value),
+            after: scenarioOutlook.energyUsage,
+            afterValue: readNumericValue(scenarioOutlook.energyUsage),
+            unit: "index points",
+            higherIsBetter: false,
+          },
+    ] : []),
+  ]
+    .filter((metric) => metric.beforeValue != null && metric.afterValue != null)
+    .map((metric) => {
+      const difference = metric.afterValue - metric.beforeValue;
+      const magnitude = metric.label === "Population"
+        ? Math.abs(difference).toFixed(1)
+        : String(Math.round(Math.abs(difference)));
+      const improved = difference === 0
+        ? null
+        : metric.higherIsBetter == null
+          ? null
+          : metric.higherIsBetter
+            ? difference > 0
+            : difference < 0;
+      return {
+        label: metric.label,
+        before: metric.before,
+        after: metric.after,
+        change: `${difference > 0 ? "+" : difference < 0 ? "−" : ""}${magnitude} ${metric.unit}`,
+        trend: difference === 0 ? "unchanged" : improved == null ? "neutral" : improved ? "better" : "worse",
+        note: metric.higherIsBetter == null ? "Context only" : metric.higherIsBetter ? "Higher is better" : "Lower is better",
+      };
+    });
 
   const predictions = useMemo(() => {
     const available = (step, id, category, title, icon, source) => ({
@@ -496,17 +630,59 @@ export const FuturePredictions = ({ reportOnly = false }) => {
         confidence: null,
       };
     };
-    const population = scenarioPrediction({
-      step: 1,
-      id: "pred-pop",
-      category: "Demographics & Density",
-      title: "Population outlook",
-      icon: Users,
-      value: scenarioOutlook?.population,
-      baseline: city.metrics.population.display ?? city.metrics.population.value / 1_000_000,
-      unit: "M residents",
-      metric: "population",
-    });
+    const populationChange = populationProjection
+      ? populationProjection.projected - populationProjection.baseline
+      : null;
+    const historicalReference = Number.isSafeInteger(populationEstimate?.population)
+      ? `${formatPopulationMillions(populationEstimate.population)} static 2026 estimate`
+      : "";
+    const population = populationProjection
+      ? {
+          id: "pred-pop",
+          step: 1,
+          category: "Demographics & Density",
+          title: "Population outlook",
+          icon: Users,
+          horizon: `${scenarioYear} ${populationProjection.method === "census-trend" ? "Census trend" : "assumed-growth projection"}`,
+          outlookLabel: populationProjection.method === "census-trend"
+            ? "Census-trend projection"
+            : "Assumed-growth projection",
+          stat: formatPopulationMillions(populationProjection.projected),
+          statDetail: `${populationChange > 0 ? "+" : ""}${formatPopulationMillions(Math.abs(populationChange))} vs ${populationProjection.baselineYear}`,
+          riskLevel: populationProjection.method === "census-trend"
+            ? "Historical-trend projection"
+            : "Assumption-based projection",
+          riskColor: populationProjection.method === "census-trend" ? "cyan" : "amber",
+          dataType: "population-trend",
+          futureOutcome: populationProjection.method === "census-trend"
+            ? `Extending the U.S. Census Bureau's annual ${populationProjection.firstYear}–${populationProjection.baselineYear} city estimate trend gives approximately ${formatPopulationMillions(populationProjection.projected)} by ${scenarioYear}, from ${formatPopulationMillions(populationProjection.baseline)} in ${populationProjection.baselineYear}. This is a simple trend extrapolation, not an official Census forecast or a real-time headcount.`
+            : `Applying an assumed ${(ASSUMED_ANNUAL_POPULATION_GROWTH_RATE * 100).toFixed(0)}% annual growth rate to the static, rounded 2026 planning estimate of ${formatPopulationMillions(populationProjection.baseline)} gives approximately ${formatPopulationMillions(populationProjection.projected)} by ${scenarioYear}. The estimate's source, methodology, and geographic boundary are undocumented; this is not an observed change or official forecast.`,
+          spokenBody: populationProjection.method === "census-trend"
+            ? "Based on published annual Census estimates for this city; use as an indicative trend only, not a validated demographic forecast."
+            : `The bundled 2026 population value is a static rounded estimate with undocumented source and geography, not an official count. This projection assumes ${(ASSUMED_ANNUAL_POPULATION_GROWTH_RATE * 100).toFixed(0)}% annual growth; it is not observed population change.`,
+          confidence: null,
+        }
+      : {
+          id: "pred-pop",
+          step: 1,
+          category: "Demographics & Density",
+          title: "Population outlook",
+          icon: Users,
+          horizon: `${scenarioYear} · unavailable`,
+          outlookLabel: "No verified projection",
+          stat: populationResult.status === "loading" ? "Loading…" : "Unavailable",
+          statDetail: historicalReference
+            ? `${historicalReference} · as of Jul 1, ${populationEstimate.estimateYear}`
+            : populationResult.error || "No 2026 population estimate is available",
+          riskLevel: populationResult.status === "loading" ? "Checking source" : "Data gap",
+          riskColor: "amber",
+          dataType: "population-unavailable",
+          futureOutcome: populationEstimate?.source === CENSUS_POPULATION_SOURCE
+            ? `The official population source did not return a sufficient annual history to project ${city.name}. No bundled population scenario is substituted.`
+            : `${populationEstimate?.source || "No population source"} provides no current verified annual population history for ${city.name}; a future population value cannot be calculated from it. No bundled population scenario is substituted.`,
+          spokenBody: "A dated single population reference is not treated as current data or enough evidence for a forward projection.",
+          confidence: null,
+        };
     const traffic = scenarioPrediction({
       step: 2,
       id: "pred-traffic",
@@ -515,7 +691,7 @@ export const FuturePredictions = ({ reportOnly = false }) => {
       icon: Car,
       value: scenarioOutlook?.traffic,
       baseline: city.metrics.traffic.value,
-      unit: "percentage points",
+      unit: "index points",
       metric: "traffic congestion index",
     });
     const water = scenarioPrediction({
@@ -526,35 +702,25 @@ export const FuturePredictions = ({ reportOnly = false }) => {
       icon: Droplet,
       value: scenarioOutlook?.waterDemand,
       baseline: city.metrics.waterDemand.value,
-      unit: "percentage points",
+      unit: "index points",
       metric: "water demand index",
     });
-    const energy = scenarioOutlook
-      ? {
-          id: "pred-energy",
-          step: 4,
-          category: "Energy Grid & Microgrids",
-          title: "Energy grid & microgrids outlook",
-          icon: Zap,
-          horizon: `${scenarioYear} saved-profile projection`,
-          stat: `${scenarioOutlook.energyUsage} grid-load scenario`,
-          statDetail: `${scenarioOutlook.change} scenario change vs 2026`,
-          outlookLabel: `${scenarioYear} stored projection`,
-          riskLevel: "Stored-data projection",
-          riskColor: "amber",
-          dataType: "scenario",
-          futureOutcome: `Using the saved ${scenarioYear} city forecast profile, grid load is projected at ${scenarioOutlook.energyUsage}, with an overall change of ${scenarioOutlook.change} versus 2026. This stored-data projection is used when a verified utility feed is unavailable; it is not a live grid reading.`,
-          spokenBody: city.dataMode === "illustrative"
-            ? "This projection uses the saved reference-city profile because city-specific utility data is unavailable. Treat it as illustrative, not an operational forecast."
-            : "This projection uses the saved city forecast profile because a verified utility feed is unavailable. It has not been validated against current grid observations.",
-          confidence: null,
-        }
-      : available(4, "pred-energy", "Energy Grid & Microgrids", "Energy grid & microgrids outlook", Zap, `No bundled ${scenarioYear} energy scenario or verified grid feed is available.`);
+    const energy = scenarioPrediction({
+      step: 4,
+      id: "pred-energy",
+      category: "Energy Grid & Microgrids",
+      title: "Energy grid & microgrids outlook",
+      icon: Zap,
+      value: scenarioOutlook?.energyUsage,
+      baseline: city.metrics.energyUsage.value,
+      unit: "index points",
+      metric: "energy load index",
+    });
     const strategicMetrics = scenarioOutlook ? [
       {
         label: "population growth",
-        value: readNumericValue(scenarioOutlook.population),
-        baseline: readNumericValue(city.metrics.population.display) ?? city.metrics.population.value / 1_000_000,
+        value: populationProjection ? populationProjection.projected / 1_000_000 : null,
+        baseline: populationProjection ? populationProjection.baseline / 1_000_000 : null,
         action: "phase housing, schools, clinics, and utility capacity around transit-oriented growth",
       },
       {
@@ -586,7 +752,7 @@ export const FuturePredictions = ({ reportOnly = false }) => {
       ? {
           id: "pred-milestone",
           step: 8,
-          category: "Strategic AI Milestone",
+          category: "Strategic Planning Milestone",
           title: "Strategic planning milestone",
           icon: Sparkles,
           horizon: `${scenarioYear} saved-profile projection`,
@@ -600,7 +766,7 @@ export const FuturePredictions = ({ reportOnly = false }) => {
           spokenBody: "This milestone is derived from illustrative annual profile values. Validate it with municipal data and planning teams before using it as an operational target.",
           confidence: null,
         }
-      : available(8, "pred-milestone", "Strategic AI Milestone", "Strategic planning milestone", Sparkles, `No bundled ${scenarioYear} scenario is available to rank a planning priority.`);
+      : available(8, "pred-milestone", "Strategic Planning Milestone", "Strategic planning milestone", Sparkles, `No bundled ${scenarioYear} scenario is available to rank a planning priority.`);
     const currentAqi = telemetry.aqi.current;
     const projectedAqi = forecastPoint?.aqi ?? null;
     const scenarioAirQuality = scenarioPrediction({
@@ -656,7 +822,15 @@ export const FuturePredictions = ({ reportOnly = false }) => {
     };
 
     return [population, traffic, water, energy, scenarioAirQuality, airQuality, weather, resilience];
-  }, [city.dataMode, city.metrics.energyUsage.value, city.metrics.population.display, city.metrics.population.value, city.metrics.traffic.value, city.metrics.waterDemand.value, city.name, forecastHours, forecastPoint, scenarioOutlook, scenarioYear, telemetry.aqi.current, telemetry.aqi.pm25, weatherForecastPoint]);
+  }, [
+    city.dataMode, city.metrics.aqi.value, city.metrics.energyUsage.value,
+    city.metrics.population.display, city.metrics.population.value,
+    city.metrics.traffic.value, city.metrics.waterDemand.value,
+    city.name, forecastHours, forecastPoint, populationEstimate, populationProjection,
+    populationResult.error, populationResult.status, scenarioOutlook, scenarioYear,
+    telemetry.aqi.current, telemetry.aqi.pm25,
+    weatherForecastPoint,
+  ]);
 
   const generateReport = () => {
     const currentAqi = telemetry.aqi.current;
@@ -814,11 +988,63 @@ export const FuturePredictions = ({ reportOnly = false }) => {
           }]
         : []),
     ];
+    const generatedAt = new Date().toISOString();
+    const reportId = `YN-${generatedAt.slice(0, 4)}-${city.id}-${Date.now().toString(36).toUpperCase()}`;
+    const formatProfileMetric = (metric, unit = "") => {
+      if (metric?.display) return metric.display;
+      const value = readNumericValue(metric?.value);
+      return value == null ? "Unavailable" : `${value}${unit}`;
+    };
+    const currentCondition = [
+      {
+        label: "Population",
+        value: city.metrics.population.display || (readNumericValue(city.metrics.population.value) == null
+          ? "Unavailable"
+          : formatPopulationMillions(readNumericValue(city.metrics.population.value))),
+        source: "2026 city-profile planning estimate",
+      },
+      {
+        label: "Traffic pressure",
+        value: formatProfileMetric(city.metrics.traffic, " profile-index points"),
+        source: "Bundled city-profile index; not a live traffic reading",
+      },
+      {
+        label: "Air quality",
+        value: telemetry.aqi.current == null ? "Unavailable" : `${Math.round(telemetry.aqi.current)} US AQI`,
+        source: "Public atmospheric model; not a municipal sensor",
+      },
+      {
+        label: "Energy load",
+        value: formatProfileMetric(city.metrics.energyUsage, " profile-index points"),
+        source: "Bundled city-profile index; no verified utility feed",
+      },
+      {
+        label: "Water demand",
+        value: formatProfileMetric(city.metrics.waterDemand, " profile-index points"),
+        source: "Bundled city-profile index; no verified utility feed",
+      },
+      {
+        label: "Travel time, risk, and response",
+        value: "Not available",
+        source: "No verified city-specific measurements connected",
+      },
+    ];
+    const whyThisAnalysis = cityTransformation
+      ? "This report evaluates the attached What-if scenario against the selected city's available profile indicators. It helps expose modeled changes and data gaps; it does not establish real-world intervention effectiveness."
+      : demoScenario
+        ? "This report records the attached illustrative mobility scenario alongside available public weather and air-quality outlooks. The scenario is not calibrated to observed city outcomes."
+        : "This report summarizes available short-range public weather and air-quality model outputs, the selected city's profile indicators, and the measurements still needed for evidence-based planning.";
+    const finalConclusion = cityTransformation
+      ? `${cityTransformation.classification}. The modeled changes are limited to the indicators shown in the transformation table; validate the assumptions with local observations before making investment decisions.`
+      : demoScenario
+        ? "The imported scenario is illustrative and cannot establish the best intervention. Compare validated impact, cost, risk, implementation time, and sustainability data before selecting a policy."
+        : "This report provides short-range public model outlooks and identifies city-data gaps. It does not rank interventions or provide a validated long-term city forecast.";
     const nextReport = {
       city: city.name,
       region: city.state || city.country,
-      generatedAt: new Date().toISOString(),
-      simulation: "Open-Meteo public weather and air-quality forecasts",
+      generatedAt,
+      reportId,
+      reportTitle: "Urban Intelligence Report",
       model: "Open-Meteo numerical weather and atmospheric models",
       targetYear: forecastTimestamp || `${forecastHours}-hour forecast`,
       targetTime: forecastTimestamp,
@@ -826,16 +1052,51 @@ export const FuturePredictions = ({ reportOnly = false }) => {
       validityYear: forecastTimestamp || "Unavailable",
       dataClassification: "Public modelled weather and air-quality forecasts; not direct city sensors",
       source: "Hourly weather and atmospheric model forecasts retrieved from Open-Meteo. Provider update cadence applies.",
+      currentCondition,
+      whyThisAnalysis,
+      finalConclusion,
+      interventionDetails: {
+        name: cityTransformation?.intervention || demoScenario?.intervention || "No intervention attached",
+        cost: "Not modeled",
+        implementationTime: "Not modeled",
+        affectedZones: "Not mapped",
+      },
+      scenarioComparison: {
+        available: false,
+        reason: "This report contains no validated, comparable set of alternative scenarios. A single what-if result is not enough to rank a best option.",
+      },
+      systemConnections: {
+        available: false,
+        reason: "No validated city-system causal model is connected. Relationships between traffic, emissions, health, energy, water, and risk are not quantified here.",
+      },
+      dataTransparency: {
+        realDataPercentage: null,
+        simulatedDataPercentage: null,
+        predictedDataPercentage: null,
+        modelVersion: "Not supplied by the public model provider",
+        confidence: null,
+      },
       executiveSummary: `${weatherForecastSummary} ${projectedAqi == null
         ? "Air-quality forecast is unavailable for the selected period."
-        : `The model forecasts ${Math.round(projectedAqi)} US AQI around ${new Date(forecastPoint.timestamp).toLocaleString()}.`} Population, traffic, water, and electricity also have bundled annual scenario projections${scenarioOutlook ? ` for ${scenarioYear}` : ""}; those illustrative values are not real-time forecasts. Verified city-specific live feeds are not configured.`,
+        : `The model forecasts ${Math.round(projectedAqi)} US AQI around ${new Date(forecastPoint.timestamp).toLocaleString()}.`} The ${scenarioYear} population outlook is ${populationProjection
+          ? populationProjection.method === "assumed-rate"
+            ? `based on an assumed ${(ASSUMED_ANNUAL_POPULATION_GROWTH_RATE * 100).toFixed(0)}% annual growth rate from the rounded 2026 planning estimate`
+            : "a trend extrapolation of annual Census estimates"
+          : "unavailable from the connected population source"}; other annual indicators remain bundled illustrative scenarios and are not real-time forecasts.`,
+      cityTransformation,
+      decisionScenario: demoScenario ? {
+        ...demoScenario,
+        source: "Illustrative rule-based dashboard demo; fixed assumptions, not a calibrated forecast",
+      } : null,
       metrics: reportMetrics,
-      scenarioProjection: scenarioOutlook ? {
+      scenarioProjection: scenarioOutlook || populationProjection ? {
         year: Number(scenarioYear),
-        change: scenarioOutlook.change,
-        source: city.dataMode === "illustrative"
-          ? "Bundled reference-city scenario profile"
-          : "Bundled illustrative city scenario profile",
+        change: scenarioOutlook?.change || "Population projection only",
+        source: `${populationProjection?.method === "assumed-rate"
+          ? `2026 population planning estimate with assumed ${(ASSUMED_ANNUAL_POPULATION_GROWTH_RATE * 100).toFixed(0)}% yearly growth`
+          : populationProjection ? "U.S. Census annual population trend" : "No population projection available"}; other indicators use ${city.dataMode === "illustrative"
+          ? "bundled reference-city scenario data"
+          : "bundled illustrative city scenario data"}`,
         metrics: scenarioMetrics.map(({ label, value }) => ({ label, value })),
       } : null,
       indicators: predictions.map((prediction) => ({
@@ -851,7 +1112,7 @@ export const FuturePredictions = ({ reportOnly = false }) => {
           : []),
         ...elevatedRainWatch,
         ...weatherRiskWatches,
-        ...["Population", "Traffic", "Water", "Electricity grid"].map((indicator) => ({
+        ...["Traffic", "Water", "Electricity grid"].map((indicator) => ({
           title: `${indicator} live data coverage gap`,
           severity: "DATA GAP",
           currentLevel: "No verified live feed",
@@ -876,7 +1137,7 @@ export const FuturePredictions = ({ reportOnly = false }) => {
           action: "Integrate official transport, statistics, water utility, grid-operator, and emergency-management feeds before presenting annual illustrative scenarios as operational forecasts.",
         },
       ],
-      disclaimer: `Weather and air-quality values are numerical model estimates from Open-Meteo, not verified municipal observations or official warnings. ${scenarioOutlook ? `The ${scenarioYear} city scenario and its planning milestone use bundled illustrative values, not validated predictions or live data. ` : ""}Authoritative real-time feeds for population, traffic, water, and electricity are unavailable. This short-range outlook applies only to the timestamp shown and is not a long-term forecast.`,
+      disclaimer: `Weather and air-quality values are numerical model estimates from Open-Meteo, not verified municipal observations or official warnings. Population starts from a rounded 2026 planning estimate; future values apply an assumed growth rate and are not official forecasts or live headcounts. City and metro boundaries vary. ${scenarioOutlook ? `Other ${scenarioYear} city-scenario indicators use bundled illustrative values. ` : ""}Verified live feeds for traffic, water, and electricity are unavailable. This short-range outlook applies only to the timestamp shown and is not a long-term forecast.`,
     };
     setGeneratedReport(nextReport);
     if (currentUser?.authType === "user") {
@@ -901,8 +1162,9 @@ export const FuturePredictions = ({ reportOnly = false }) => {
       extension = "json";
     } else {
       const escapeCsv = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
-      const headers = ["city", "baseline_year", "target_year", "indicator", "unit", "baseline", "projected", "change", "change_percent"];
+      const headers = ["report_id", "city", "baseline_year", "target_year", "indicator", "unit", "baseline", "projected", "change", "change_percent", "source_classification"];
       const rows = generatedReport.metrics.map((metric) => [
+        generatedReport.reportId,
         generatedReport.city,
         generatedReport.baselineYear,
         generatedReport.targetYear,
@@ -912,8 +1174,10 @@ export const FuturePredictions = ({ reportOnly = false }) => {
         metric.projected,
         metric.change,
         metric.changePercent ?? "",
+        "Public model / projection",
       ]);
       const scenarioRows = (generatedReport.scenarioProjection?.metrics || []).map((metric) => [
+        generatedReport.reportId,
         generatedReport.city,
         "Illustrative scenario",
         generatedReport.scenarioProjection.year,
@@ -923,8 +1187,26 @@ export const FuturePredictions = ({ reportOnly = false }) => {
         metric.value,
         "Not calculated",
         "",
+        "Illustrative scenario",
       ]);
-      contents = [headers, ...rows, ...scenarioRows].map((row) => row.map(escapeCsv).join(",")).join("\n");
+      const decisionRows = generatedReport.decisionScenario ? [
+        [generatedReport.reportId, generatedReport.city, "Dashboard baseline", "Demo intervention", "Traffic pressure index", "% profile index", generatedReport.decisionScenario.trafficBefore, generatedReport.decisionScenario.trafficAfter, generatedReport.decisionScenario.trafficAfter - generatedReport.decisionScenario.trafficBefore, "", "Illustrative demo"],
+        [generatedReport.reportId, generatedReport.city, generatedReport.decisionScenario.aqiSource, "Demo intervention", "Air quality index", "AQI", generatedReport.decisionScenario.aqiBefore, generatedReport.decisionScenario.aqiAfter, generatedReport.decisionScenario.aqiAfter - generatedReport.decisionScenario.aqiBefore, "", "Illustrative demo"],
+      ] : [];
+      const transformationRows = (generatedReport.cityTransformation?.metrics || []).map((metric) => [
+        generatedReport.reportId,
+        generatedReport.city,
+        "Before / after what-if simulation",
+        generatedReport.cityTransformation.intervention,
+        metric.label,
+        metric.unit,
+        metric.before ?? "Unavailable",
+        metric.after ?? "Not modeled",
+        metric.change ?? "Not calculated",
+        metric.changePercent == null ? "" : `${metric.changePercent}%`,
+        metric.source,
+      ]);
+      contents = [headers, ...rows, ...scenarioRows, ...decisionRows, ...transformationRows].map((row) => row.map(escapeCsv).join(",")).join("\n");
       mimeType = "text/csv;charset=utf-8";
       extension = "csv";
     }
@@ -933,7 +1215,8 @@ export const FuturePredictions = ({ reportOnly = false }) => {
     const url = URL.createObjectURL(file);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${generatedReport.city.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-prediction-${generatedReport.targetYear}.${extension}`;
+    const safeHorizon = String(generatedReport.targetYear).toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    link.download = `${generatedReport.city.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-urban-intelligence-${safeHorizon}.${extension}`;
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -1016,11 +1299,21 @@ export const FuturePredictions = ({ reportOnly = false }) => {
       documentPdf.text("AI FUTURE CITY SIMULATOR • 3D CITY DIGITAL TWIN", margin + 23, cursorY + 9);
       cursorY += 23;
 
-      addText(`${generatedReport.city} City Forecast Report`, { fontSize: 19, color: [16, 32, 27], bold: true, gap: 2 });
-      addText(`Generated: ${new Date(generatedReport.generatedAt).toLocaleString()}`, { fontSize: 9, color: [84, 101, 109] });
-      addText(`City: ${generatedReport.city}  |  Region: ${generatedReport.region}  |  Simulation: ${generatedReport.simulation}`, { fontSize: 9, color: [84, 101, 109] });
-      addText(`View: ${generatedReport.view}  |  Report Status: ${generatedReport.reportStatus}  |  Validity Year: ${generatedReport.validityYear ?? generatedReport.targetYear}  |  Data: ${generatedReport.dataClassification}`, { fontSize: 9, color: [84, 101, 109], gap: 4 });
+      addText(`${generatedReport.city} Urban Intelligence Report`, { fontSize: 19, color: [16, 32, 27], bold: true, gap: 2 });
+      addText(`Report ID: ${generatedReport.reportId}  |  Generated: ${new Date(generatedReport.generatedAt).toLocaleString()}`, { fontSize: 9, color: [84, 101, 109] });
+      addText(`City: ${generatedReport.city}  |  Region: ${generatedReport.region || "Unavailable"}  |  Provider/model: ${generatedReport.model}`, { fontSize: 9, color: [84, 101, 109] });
+      addText(`Forecast horizon: ${generatedReport.targetYear}  |  Data: ${generatedReport.dataClassification}`, { fontSize: 9, color: [84, 101, 109], gap: 4 });
+      addSection("01 EXECUTIVE SUMMARY");
       addText(generatedReport.executiveSummary, { fontSize: 10, color: [50, 62, 72], gap: 6 });
+      addSection("02 WHY THIS ANALYSIS?");
+      addText(generatedReport.whyThisAnalysis, { fontSize: 9 });
+      addSection("03 CURRENT CITY CONDITION");
+      generatedReport.currentCondition.forEach((item) => {
+        addText(`${item.label}: ${item.value} (${item.source})`, { fontSize: 9, gap: 1 });
+      });
+      addText("Location-specific map layers and hotspots: unavailable.", { fontSize: 8, color: [84, 101, 109] });
+      addSection("05 INTERVENTION / SCENARIO");
+      addText(`Selected: ${generatedReport.interventionDetails.name}; cost: ${generatedReport.interventionDetails.cost}; implementation time: ${generatedReport.interventionDetails.implementationTime}; affected zones: ${generatedReport.interventionDetails.affectedZones}.`, { fontSize: 9 });
 
       const summaryCards = [
         ...generatedReport.metrics.slice(0, 6).map((metric) => [
@@ -1051,7 +1344,7 @@ export const FuturePredictions = ({ reportOnly = false }) => {
       });
       cursorY += 70;
 
-      addSection("AI PREDICTION SUMMARY");
+      addSection("09 FUTURE FORECAST & OUTLOOK SUMMARY");
       const predictionPairs = generatedReport.metrics.slice(0, 4).map((metric) => [
         metric.label,
         `${metric.baseline} ${metric.unit} → ${metric.projected} ${metric.unit}`.trim(),
@@ -1060,7 +1353,7 @@ export const FuturePredictions = ({ reportOnly = false }) => {
         addText(`${label}: ${value}`, { fontSize: 9, gap: 2 });
       });
 
-      addSection("PREDICTION DETAILS");
+      addSection("09 OUTLOOK DETAILS");
       (generatedReport.predictionDetails || generatedReport.metrics).forEach((metric) => {
         const changeText = metric.change == null ? "N/A" : `${metric.change > 0 ? "+" : ""}${metric.change}`;
         const percentText = metric.changePercent == null ? "N/A" : `${metric.changePercent > 0 ? "+" : ""}${metric.changePercent}%`;
@@ -1068,56 +1361,83 @@ export const FuturePredictions = ({ reportOnly = false }) => {
         addText(`${metric.label}: ${metric.baseline} ${unit} (${generatedReport.baselineYear}) -> ${metric.projected ?? metric.baseline} ${unit} (${generatedReport.targetYear}); change ${changeText} ${unit} (${percentText})`, { fontSize: 9, gap: 2 });
       });
 
-      addSection("MODEL & PREDICTION TRANSPARENCY");
+      addSection("METHOD & LIMITATIONS");
       const modelDetails = typeof generatedReport.model === "object"
         ? generatedReport.model
         : { name: generatedReport.model };
-      addText(`Model: ${modelDetails.name || "Not available"}`, { fontSize: 9, gap: 1 });
-      addText(`Prediction Horizon: ${modelDetails.horizon || generatedReport.targetYear || "Not available"}`, { fontSize: 9, gap: 1 });
-      addText(`Input Features: ${modelDetails.inputFeatures ?? "Not reported"}`, { fontSize: 9, gap: 1 });
-      addText(`Training Data: ${modelDetails.trainingData || generatedReport.source || "Not reported"}`, { fontSize: 9, gap: 1 });
-      addText(`Prediction Confidence: ${modelDetails.predictionConfidence || "Not validated"}`, { fontSize: 9, gap: 1 });
-      addText(`Validity Year: ${generatedReport.validityYear ?? generatedReport.targetYear}`, { fontSize: 9, gap: 3 });
-      addText("Evaluation metrics are not available for this provider forecast.", { fontSize: 8, gap: 2 });
+      addText(`Provider/model: ${modelDetails.name || "Not available"}`, { fontSize: 9, gap: 1 });
+      addText(`Source: ${generatedReport.source || "Not available"}`, { fontSize: 9, gap: 1 });
+      addText(`Data: ${generatedReport.dataClassification || "Not available"}`, { fontSize: 9, gap: 1 });
+      addText("This application did not train the provider model. Application training data, a confidence estimate, and held-out validation metrics are not available.", { fontSize: 8, gap: 3 });
 
-      addSection("PROBLEMS IDENTIFIED");
+      addSection("04 PROBLEM & EVIDENCE REVIEW");
+      addText("Available watch items and data gaps are not verified root causes; no causal attribution or root-cause percentages are modeled.", { fontSize: 8, color: [84, 101, 109] });
       (generatedReport.problems || generatedReport.risks || []).forEach((problem, index) => {
         const title = problem.title || problem.risk || `Problem ${index + 1}`;
         const severity = problem.severity || "MODERATE";
         const current = problem.currentLevel || problem.currentValue || "N/A";
         const predicted = problem.predictedLevel || problem.predictedValue || "N/A";
         const cause = problem.cause || problem.primaryCause || "Not available";
-        addText(`${index + 1}. ${title} | Severity: ${severity} | Current: ${current} | Predicted: ${predicted} | Cause: ${cause}`, { fontSize: 9, gap: 1 });
+        addText(`${index + 1}. ${title} | Severity: ${severity} | Current: ${current} | Predicted: ${predicted} | Evidence / verification: ${cause}`, { fontSize: 9, gap: 1 });
       });
-
-      addSection("AI RISK ANALYSIS");
-      (generatedReport.risks || []).forEach((risk) => {
-        addText(`${risk.risk}: ${risk.currentLevel} → ${risk.predictedLevel} | Severity: ${risk.severity} | Primary Cause: ${risk.primaryCause}`, { fontSize: 9, gap: 1 });
-      });
-
-      addSection("AI REDUNDANCY ANALYSIS");
-      (generatedReport.redundancy || []).forEach((entry) => {
-        addText(`${entry.id} | ${entry.category} | ${entry.zone} | ${entry.level} | Evidence: ${entry.evidence}`, { fontSize: 8, gap: 1 });
-      });
-      if (generatedReport.redundancy?.length === 0 || !generatedReport.redundancy) {
-        addText("No redundancy analysis is included in this public weather and air-quality report.", { fontSize: 8, gap: 2 });
-      }
 
       if (generatedReport.scenarioProjection) {
-        addSection(`ILLUSTRATIVE CITY SCENARIO · ${generatedReport.scenarioProjection.year}`);
+        addSection(`09 ILLUSTRATIVE CITY SCENARIO · ${generatedReport.scenarioProjection.year}`);
         addText(`Source: ${generatedReport.scenarioProjection.source}. Scenario change vs 2026: ${generatedReport.scenarioProjection.change}.`, { fontSize: 9 });
         generatedReport.scenarioProjection.metrics.forEach((metric) => {
           addText(`${metric.label}: ${metric.value}`, { fontSize: 9, gap: 1 });
         });
       }
 
-      addSection("RECOMMENDED ACTION AREAS");
+      if (generatedReport.decisionScenario) {
+        addSection("05 DASHBOARD WHAT-IF DEMO · NOT A VALIDATED FORECAST");
+        addText(`Intervention: ${generatedReport.decisionScenario.intervention}`, { fontSize: 9, bold: true });
+        addText(`Traffic pressure demo index: ${generatedReport.decisionScenario.trafficBefore} -> ${generatedReport.decisionScenario.trafficAfter} points`, { fontSize: 9 });
+        addText(`AQI (${generatedReport.decisionScenario.aqiSource}): ${generatedReport.decisionScenario.aqiBefore} -> ${generatedReport.decisionScenario.aqiAfter} AQI points`, { fontSize: 9 });
+        addText(generatedReport.decisionScenario.source, { fontSize: 8, color: [84, 101, 109] });
+      }
+
+      if (generatedReport.cityTransformation) {
+        const transformation = generatedReport.cityTransformation;
+        const summary = summarizeTransformation(transformation.metrics);
+        addSection("06 BEFORE vs AFTER · CITY TRANSFORMATION");
+        addText(`${transformation.classification} · ${transformation.intervention}`, { fontSize: 9, bold: true });
+        transformation.metrics.forEach((metric) => {
+          const before = metric.before == null ? "Unavailable" : `${metric.before} ${metric.unit}`;
+          const after = metric.after == null ? "Not modeled" : `${metric.after} ${metric.unit}`;
+          const change = metric.change == null ? "Not calculated" : `${metric.change > 0 ? "+" : ""}${metric.change} ${metric.unit}`;
+          const percent = metric.changePercent == null ? "percentage unavailable" : `${metric.changePercent > 0 ? "+" : ""}${metric.changePercent}%`;
+          addText(`${metric.label}: ${before} -> ${after}; change ${change} (${percent}); ${metric.source}`, { fontSize: 8, gap: 1 });
+        });
+        addText("07 IMPACT ANALYSIS", { fontSize: 9, bold: true, gap: 1 });
+        addText(`Indicator summary: ${summary.improved.length} improved, ${summary.worsened.length} worsened, ${summary.unchanged.length} unchanged, ${summary.unavailable.length} not modeled.`, { fontSize: 9, bold: true });
+        addText(`What changed: ${transformation.explanation.whatChanged}`, { fontSize: 8 });
+        transformation.explanation.whyChanged.forEach((reason) => addText(`Assumption: ${reason}`, { fontSize: 8, gap: 1 }));
+        addText("08 BENEFITS & TRADE-OFFS", { fontSize: 9, bold: true, gap: 1 });
+        transformation.explanation.benefits.forEach((benefit) => addText(`Calculated benefit: ${benefit}`, { fontSize: 8, gap: 1 }));
+        transformation.explanation.tradeoffs.forEach((tradeoff) => addText(`Calculated trade-off: ${tradeoff}`, { fontSize: 8, gap: 1 }));
+        addText(`Map limitation: ${transformation.map.reason}`, { fontSize: 8 });
+        addText(`Next step: ${transformation.explanation.nextStep}`, { fontSize: 8 });
+      }
+
+      addSection("12 AI-ASSISTED PLANNING RECOMMENDATIONS · RULE-BASED PROMPTS");
       generatedReport.solutions.forEach((solution, index) => {
         addText(`${index + 1}. ${solution.title}`, { fontSize: 10, color: [16, 72, 57], bold: true, gap: 1 });
         addText(`Forecast signal: ${solution.signal}`, { fontSize: 9, color: [68, 94, 85], indent: 4, gap: 1 });
         addText(solution.action, { fontSize: 9, indent: 4, gap: 3 });
       });
 
+      addSection("10 SCENARIO COMPARISON");
+      addText(generatedReport.scenarioComparison.reason, { fontSize: 9 });
+      addSection("11 CITY SYSTEM CONNECTIONS");
+      addText(generatedReport.systemConnections.reason, { fontSize: 9 });
+      addSection("13 REMAINING PROBLEMS");
+      addText(`${(generatedReport.problems || []).length} watch items or data gaps are listed in section 04. ${generatedReport.cityTransformation ? `${summarizeTransformation(generatedReport.cityTransformation.metrics).unavailable.length} transformation metrics remain unmodeled.` : "No intervention-specific before/after snapshot is attached."}`, { fontSize: 9 });
+      addSection("14 FINAL CITY TRANSFORMATION");
+      addText("BEFORE -> PROBLEM REVIEW -> ANALYSIS -> INTERVENTION -> AFTER -> IMPACT. Only stages supported by supplied outputs are quantified.", { fontSize: 9 });
+      addSection("15 FINAL CONCLUSION & DATA TRANSPARENCY");
+      addText(generatedReport.finalConclusion, { fontSize: 9 });
+      addText("Real data share: not calculated. Simulated data share: not calculated. Predicted data share: not calculated. Model version: not supplied. Validated confidence: unavailable.", { fontSize: 8 });
       addSection("LIMITATIONS");
       (generatedReport.limitations || [generatedReport.disclaimer]).forEach((item) => addText(item, { fontSize: 8, color: [84, 101, 109], gap: 1 }));
       for (let page = 1; page <= documentPdf.getNumberOfPages(); page += 1) {
@@ -1129,7 +1449,8 @@ export const FuturePredictions = ({ reportOnly = false }) => {
         documentPdf.text(`${page} / ${documentPdf.getNumberOfPages()}`, pageWidth - margin, pageHeight - 8, { align: "right" });
       }
 
-      const fileName = `${generatedReport.city.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-prediction-${generatedReport.targetYear}.pdf`;
+      const safeHorizon = String(generatedReport.targetYear).toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const fileName = `${generatedReport.city.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-urban-intelligence-${safeHorizon}.pdf`;
       documentPdf.save(fileName);
       if (currentUser?.authType === "user") {
         const archived = archivePredictionReport(generatedReport, currentUser, "pdf");
@@ -1159,8 +1480,24 @@ export const FuturePredictions = ({ reportOnly = false }) => {
     const metricRows = generatedReport.metrics.map((metric) => `
       <tr><td>${escapeHtml(metric.label)}</td><td>${metric.baseline} ${escapeHtml(metric.unit)}</td><td>${metric.projected} ${escapeHtml(metric.unit)}</td><td>${metric.change > 0 ? "+" : ""}${metric.change} ${escapeHtml(metric.unit)}</td><td>${metric.changePercent == null ? "N/A" : `${metric.changePercent > 0 ? "+" : ""}${metric.changePercent}%`}</td></tr>
     `).join("");
+    const currentConditionRows = generatedReport.currentCondition.map((item) => `
+      <tr><td>${escapeHtml(item.label)}</td><td>${escapeHtml(item.value)}</td><td>${escapeHtml(item.source)}</td></tr>
+    `).join("");
     const scenarioBlock = generatedReport.scenarioProjection
       ? `<h2>Illustrative city scenario · ${generatedReport.scenarioProjection.year}</h2><p>${escapeHtml(generatedReport.scenarioProjection.source)} · Scenario change vs 2026: ${escapeHtml(generatedReport.scenarioProjection.change)} · Not real-time or validated data.</p><table><thead><tr><th>Indicator</th><th>Scenario value</th></tr></thead><tbody>${generatedReport.scenarioProjection.metrics.map((metric) => `<tr><td>${escapeHtml(metric.label)}</td><td>${escapeHtml(metric.value)}</td></tr>`).join("")}</tbody></table>`
+      : "";
+    const decisionScenarioBlock = generatedReport.decisionScenario
+      ? `<h2>What-if demo · not a validated forecast</h2><p>Intervention: ${escapeHtml(generatedReport.decisionScenario.intervention)}</p><p>Traffic pressure index: ${escapeHtml(generatedReport.decisionScenario.trafficBefore)} → ${escapeHtml(generatedReport.decisionScenario.trafficAfter)} demo index points.</p><p>AQI (${escapeHtml(generatedReport.decisionScenario.aqiSource)}): ${escapeHtml(generatedReport.decisionScenario.aqiBefore)} → ${escapeHtml(generatedReport.decisionScenario.aqiAfter)} AQI points.</p><p>${escapeHtml(generatedReport.decisionScenario.source)}</p>`
+      : "";
+    const transformationBlock = generatedReport.cityTransformation
+      ? (() => {
+          const transformation = generatedReport.cityTransformation;
+          const summary = summarizeTransformation(transformation.metrics);
+          const transformationRows = transformation.metrics.map((metric) => `
+            <tr><td>${escapeHtml(metric.label)}</td><td>${metric.before == null ? "Unavailable" : `${escapeHtml(metric.before)} ${escapeHtml(metric.unit)}`}</td><td>${metric.after == null ? "Not modeled" : `${escapeHtml(metric.after)} ${escapeHtml(metric.unit)}`}</td><td>${metric.change == null ? "Not calculated" : `${metric.change > 0 ? "+" : ""}${escapeHtml(metric.change)} ${escapeHtml(metric.unit)}`}</td><td>${metric.changePercent == null ? "N/A" : `${metric.changePercent > 0 ? "+" : ""}${escapeHtml(metric.changePercent)}%`}</td><td>${escapeHtml(metric.source)}</td></tr>
+          `).join("");
+          return `<h2>06 · BEFORE vs AFTER · CITY TRANSFORMATION</h2><p><strong>${escapeHtml(transformation.classification)}</strong> · ${escapeHtml(transformation.intervention)}</p><table><thead><tr><th>Indicator</th><th>Before</th><th>After</th><th>Change</th><th>Change %</th><th>Source</th></tr></thead><tbody>${transformationRows}</tbody></table><h3>07 · Impact Analysis</h3><p>${summary.improved.length} improved · ${summary.worsened.length} worsened · ${summary.unchanged.length} unchanged · ${summary.unavailable.length} not modeled</p><p><strong>What changed?</strong> ${escapeHtml(transformation.explanation.whatChanged)}</p><p><strong>Why?</strong> ${transformation.explanation.whyChanged.map(escapeHtml).join(" · ")}</p><h3>08 · Benefits & Trade-offs</h3><p><strong>Benefits:</strong> ${transformation.explanation.benefits.map(escapeHtml).join(" · ") || "No calculated improvement."}</p><p><strong>Trade-offs:</strong> ${transformation.explanation.tradeoffs.map(escapeHtml).join(" · ") || "No trade-off output is modeled."}</p><p><strong>Map:</strong> ${escapeHtml(transformation.map.reason)}</p><p><strong>Next step:</strong> ${escapeHtml(transformation.explanation.nextStep)}</p>`
+        })()
       : "";
     const indicatorRows = generatedReport.indicators.map((indicator) => `
       <article><h3>${escapeHtml(indicator.title)}</h3><p>${escapeHtml(indicator.outcome)}</p><small>${escapeHtml(indicator.category)} · ${escapeHtml(indicator.riskLevel)} · Confidence: ${indicator.confidence == null ? "N/A" : `${indicator.confidence}%`}</small></article>
@@ -1174,13 +1511,13 @@ export const FuturePredictions = ({ reportOnly = false }) => {
       const current = problem.currentLevel || problem.currentValue || "N/A";
       const predicted = problem.predictedLevel || problem.predictedValue || "N/A";
       const cause = problem.cause || problem.primaryCause || "Not available";
-      return `<article><h3>${escapeHtml(title)}</h3><p><strong>Severity:</strong> ${escapeHtml(severity)} · <strong>Current:</strong> ${escapeHtml(current)} · <strong>Predicted:</strong> ${escapeHtml(predicted)}</p><p><strong>Cause:</strong> ${escapeHtml(cause)}</p></article>`;
+      return `<article><h3>${escapeHtml(title)}</h3><p><strong>Severity:</strong> ${escapeHtml(severity)} · <strong>Current:</strong> ${escapeHtml(current)} · <strong>Predicted:</strong> ${escapeHtml(predicted)}</p><p><strong>Evidence / verification:</strong> ${escapeHtml(cause)}</p></article>`;
     }).join("");
 
     printWindow.onload = () => printWindow.print();
-    printWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(generatedReport.city)} Prediction Report</title><style>
+    printWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(generatedReport.city)} Urban Intelligence Report</title><style>
       body{font:14px/1.5 Arial,sans-serif;color:#17212b;margin:36px auto;max-width:920px;padding:0 24px}.brand{display:flex;align-items:center;gap:12px;padding-bottom:16px;margin-bottom:22px;border-bottom:2px solid #70e2d0}.brand img{width:46px;height:46px;padding:5px;border-radius:9px;background:#70e2d0}.brand strong{display:block;color:#10201b;font-size:17px;letter-spacing:.08em}.brand span{display:block;color:#52616d;font-size:10px;letter-spacing:.12em}h1{font-size:28px;margin:0 0 6px}h2{font-size:17px;margin-top:28px;border-bottom:1px solid #ccd5dc;padding-bottom:7px}.meta{color:#52616d;font-size:12px}.notice{padding:12px;background:#f2f7f8;border-left:4px solid #087e8b;margin:18px 0}table{border-collapse:collapse;width:100%;font-size:12px}th,td{text-align:left;border-bottom:1px solid #d8e0e5;padding:9px 7px}th{background:#f2f5f7}article{padding:10px 0;border-bottom:1px solid #e1e6e9;break-inside:avoid}article h3{font-size:14px;margin:4px 0}article p{margin:5px 0}small{color:#52616d}.disclaimer{margin-top:24px;padding-top:12px;border-top:1px solid #ccd5dc;color:#52616d;font-size:11px}.footer{margin-top:22px;color:#52616d;font-size:10px;text-align:center}@media print{body{margin:0 auto;padding:0 12px}}
-    </style></head><body><header class="brand"><img src="${escapeHtml(YugNirmanMark)}" alt=""><div><strong>YUG NIRMAN</strong><span>AI FUTURE CITY SIMULATOR · FUTURE PLANNING REPORT</span></div></header><h1>${escapeHtml(generatedReport.city)} Prediction Report</h1><div class="meta">Horizon: ${generatedReport.targetYear} · Baseline: ${generatedReport.baselineYear} · Validity Year: ${generatedReport.validityYear ?? generatedReport.targetYear} · ${escapeHtml(generatedReport.model)} · Generated ${escapeHtml(new Date(generatedReport.generatedAt).toLocaleString())}</div><div class="notice">${escapeHtml(generatedReport.source)} Active scenario event: ${escapeHtml(generatedReport.activeEvent || "none")}.</div><h2>Prediction details</h2><table><thead><tr><th>Indicator</th><th>${generatedReport.baselineYear} baseline</th><th>${generatedReport.targetYear} projection</th><th>Change</th><th>Change %</th></tr></thead><tbody>${metricRows}</tbody></table>${scenarioBlock}<h2>Problems identified</h2>${problemRows}<h2>Solutions</h2>${solutionRows}<h2>Prediction notes</h2>${indicatorRows}<p class="disclaimer">${escapeHtml(generatedReport.disclaimer)}</p><p class="footer">YUG NIRMAN · AI Future City Simulator</p></body></html>`);
+    </style></head><body><header class="brand"><img src="${escapeHtml(YugNirmanMark)}" alt=""><div><strong>YUG NIRMAN</strong><span>URBAN INTELLIGENCE REPORT</span></div></header><h1>${escapeHtml(generatedReport.city)} · Urban Intelligence Report</h1><div class="meta">Report ID: ${escapeHtml(generatedReport.reportId)} · Horizon: ${escapeHtml(generatedReport.targetYear)} · ${escapeHtml(generatedReport.model)} · Generated ${escapeHtml(new Date(generatedReport.generatedAt).toLocaleString())}</div><div class="notice">${escapeHtml(generatedReport.source)} · ${escapeHtml(generatedReport.dataClassification)}</div><h2>01 · Executive Summary</h2><p>${escapeHtml(generatedReport.executiveSummary)}</p><h2>02 · Why This Analysis?</h2><p>${escapeHtml(generatedReport.whyThisAnalysis)}</p><h2>03 · Current City Condition</h2><table><thead><tr><th>Indicator</th><th>Available value</th><th>Source / classification</th></tr></thead><tbody>${currentConditionRows}</tbody></table><p>Map and location-specific hotspots: unavailable; no affected areas inferred.</p><h2>04 · Problem & Evidence Review</h2><p>Available watch items are not verified root causes; causal attribution and root-cause percentages are not modeled.</p>${problemRows}<h2>05 · Intervention / Scenario</h2><p>${escapeHtml(generatedReport.interventionDetails.name)} · Cost: ${escapeHtml(generatedReport.interventionDetails.cost)} · Implementation: ${escapeHtml(generatedReport.interventionDetails.implementationTime)} · Affected zones: ${escapeHtml(generatedReport.interventionDetails.affectedZones)}</p>${decisionScenarioBlock}${transformationBlock}<h2>09 · Future Forecast & Outlook Details</h2><table><thead><tr><th>Indicator</th><th>${escapeHtml(generatedReport.baselineYear)} baseline</th><th>${escapeHtml(generatedReport.targetYear)} outlook</th><th>Change</th><th>Change %</th></tr></thead><tbody>${metricRows}</tbody></table>${scenarioBlock}<h2>09 · Outlook notes</h2>${indicatorRows}<h2>10 · Scenario Comparison</h2><p>${escapeHtml(generatedReport.scenarioComparison.reason)}</p><h2>11 · City System Connections</h2><p>${escapeHtml(generatedReport.systemConnections.reason)}</p><h2>12 · Planning Recommendations</h2>${solutionRows}<h2>13 · Remaining Problems & Data Gaps</h2><p>${(generatedReport.problems || []).length} watch items or data gaps are listed above. Confidence and impact shares are not calculated.</p><h2>14 · Final City Transformation</h2><p>BEFORE → PROBLEM REVIEW → ANALYSIS → INTERVENTION → AFTER → IMPACT. Only supported outputs are quantified.</p><h2>15 · Final Conclusion & Data Transparency</h2><p>${escapeHtml(generatedReport.finalConclusion)}</p><p>Real data share: not calculated · Simulated data share: not calculated · Predicted data share: not calculated · Model version: ${escapeHtml(generatedReport.dataTransparency.modelVersion)} · Validated confidence: unavailable.</p><p class="disclaimer">${escapeHtml(generatedReport.disclaimer)} Application recommendations are rule-based prompts, not validated policy advice. This report is for planning review, not an official municipal forecast.</p><p class="footer">YUG NIRMAN · Urban Intelligence Report · ${escapeHtml(generatedReport.reportId)}</p></body></html>`);
     printWindow.document.close();
   };
 
@@ -1207,23 +1544,27 @@ export const FuturePredictions = ({ reportOnly = false }) => {
     <div className="space-y-6">
       {reportOnly ? (
         <PageHeader
-          title="REPORT GENERATION"
-          subtitle={`Create a live-data assessment for ${city.name}`}
+          title="City Report"
+          subtitle={demoScenario
+            ? `Create a report for ${city.name} using available public model data and the imported what-if demo`
+            : `Create a city outlook report using available public model data and illustrative scenarios`}
           icon={FileText}
           badge="City report"
+          whyFeatureIds="ai-city-report"
         />
       ) : (
         <div className="space-y-6">
           <PageHeader
-            title="FUTURE CITY PREDICTIONS"
-            subtitle="Short-range forecasts grounded in connected live public data"
+            title="Future City Outlook"
+            subtitle="See short-term forecasts and example scenarios for city services."
             icon={Sparkles}
-            badge="Live data outlook"
+            badge="Public model outlook"
+            whyFeatureIds={["future-forecasts", "city-time-machine"]}
           />
 
       <div className="flex flex-col gap-3 rounded-xl border border-cyan-500/25 bg-cyan-500/[0.06] p-4 text-xs text-slate-200 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="font-semibold text-cyan-200">Connected sources: Open-Meteo weather and air quality</p>
+          <p className="font-semibold text-cyan-200">Provider: Open-Meteo weather and air-quality models (when reachable)</p>
           <p className="mt-1 text-slate-400">
             Forecasts currently available: temperature, precipitation chance and amount, wind, weather conditions, and modelled air quality. Population, traffic, water, electricity-grid, and resilience predictions require verified city-specific feeds.
           </p>
@@ -1342,7 +1683,7 @@ export const FuturePredictions = ({ reportOnly = false }) => {
               <span className="flex items-center gap-1 text-amber-400 font-semibold">
                 <Wind className="w-3.5 h-3.5" /> Air Quality
               </span>
-              <span className="font-mono text-[10px] text-slate-400">Simulated PM2.5: {telemetry.aqi.pm25}</span>
+              <span className="font-mono text-[10px] text-slate-400">Modelled PM2.5: {telemetry.aqi.pm25 ?? "Unavailable"} μg/m³</span>
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-xl font-extrabold font-mono text-white">
@@ -1562,9 +1903,9 @@ export const FuturePredictions = ({ reportOnly = false }) => {
       <section className="p-5 rounded-2xl glass-panel border border-amber-500/25">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-white">Long-range stored-data projections</h3>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-white">Long-range projections</h3>
             <p className="mt-1 text-xs text-slate-400">
-              Saved annual forecast profile for {city.name}; used when live city feeds are unavailable. These values are illustrative projections, not real-time measurements or validated forecasts.
+              Population uses a rounded 2026 planning estimate and an explicit assumed growth rate. Other values use saved illustrative scenarios.
               {city.dataMode === "illustrative" ? " This city uses a saved reference-city profile." : ""}
             </p>
           </div>
@@ -1582,34 +1923,47 @@ export const FuturePredictions = ({ reportOnly = false }) => {
               }}
               className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-cyan-200"
             >
-              {SCENARIO_YEARS.map((year) => (
+              {POPULATION_PROJECTION_YEARS.map((year) => (
                 <option key={year} value={year}>{year}</option>
               ))}
             </select>
           </label>
         </div>
 
-        {scenarioOutlook ? (
+        {scenarioMetrics.length > 0 ? (
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {scenarioMetrics.map(({ label, value, icon: Icon }) => (
+            {scenarioMetrics.map(({ label, value, icon: Icon, detail }) => (
               <article key={label} className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[10px] font-semibold uppercase text-slate-400">{label}</span>
                   <Icon className="h-3.5 w-3.5 text-amber-300" />
                 </div>
                 <p className="mt-3 text-lg font-bold font-mono text-white">{value}</p>
-                <p className="mt-1 text-[10px] text-slate-500">Stored projection change vs 2026: {scenarioOutlook.change}</p>
+                <p className="mt-1 text-[10px] text-slate-500">
+                  {detail || `Stored projection change vs 2026: ${scenarioOutlook.change}`}
+                </p>
               </article>
             ))}
           </div>
         ) : (
           <p className="mt-4 rounded-lg border border-dashed border-slate-700 px-4 py-6 text-center text-xs text-slate-400">
-            No bundled scenario profile is available for {scenarioYear}. No substitute prediction is generated.
+            No population projection or stored scenario is available for {scenarioYear}.
           </p>
         )}
 
+        {annualComparisonItems.length > 0 && <div className="mt-4">
+          <BeforeAfterComparison
+            title={`${scenarioYear} outlook compared with the 2026 profile`}
+            description={`Compare ${city.name}'s population baseline with the selected projection${scenarioOutlook ? " and stored city indicators" : ""}.`}
+            beforeLabel="2026 profile"
+            afterLabel={`${scenarioYear} outlook`}
+            items={annualComparisonItems}
+            disclaimer={`Population starts from a rounded 2026 planning estimate${populationProjection?.method === "assumed-rate" ? ` and uses an assumed ${(ASSUMED_ANNUAL_POPULATION_GROWTH_RATE * 100).toFixed(0)}% annual rate` : ""}; it is not an official forecast or measured change. Other indicators use ${scenarioSourceLabel}.`}
+          />
+        </div>}
+
         <p className="mt-3 text-[11px] text-amber-200/80">
-          Saved annual population, traffic, air-quality, water, and energy projections appear in the matching outlook cards and serve as fallbacks when live city feeds are unavailable. They are not real-time measurements or validated forecasts.
+          Population projections start from the selected city's rounded 2026 estimate and assume {(ASSUMED_ANNUAL_POPULATION_GROWTH_RATE * 100).toFixed(0)}% yearly growth; this is not a measured population trend or official forecast. Other annual indicators remain illustrative.
         </p>
       </section>
 
@@ -1621,20 +1975,18 @@ export const FuturePredictions = ({ reportOnly = false }) => {
               <RadioTower className="w-4 h-4 text-cyan-400" />
               <span>FUTURE OUTLOOKS ({predictions.length} INDICATORS)</span>
             </h3>
-            <p className="text-xs text-slate-400">
-              Weather and short-range air quality use available hourly model data. Annual air quality, population, mobility, water, and energy use the selected saved city forecast profile when verified live feeds are unavailable.
-            </p>
+            <p className="text-xs text-slate-400">Weather and air quality use hourly models; population uses a rounded 2026 planning estimate and a clearly labeled assumed-growth projection. Other annual outlooks use {scenarioSourceLabel}.</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {predictions.map((item) => {
             const Icon = getCategoryIcon(item.category);
 
             return (
               <div
                 key={item.id}
-                className="relative rounded-2xl glass-panel p-5 transition-all duration-300 flex flex-col justify-between border border-cyan-500/20 bg-slate-900/70 hover:border-cyan-500/40 hover:bg-slate-900/90"
+                className="relative rounded-2xl glass-panel p-4 transition-all duration-300 flex flex-col justify-between border border-cyan-500/20 bg-slate-900/70 hover:border-cyan-500/40 hover:bg-slate-900/90"
               >
                 <div>
                   {/* Top Category, Step & Risk Badge */}
@@ -1688,33 +2040,41 @@ export const FuturePredictions = ({ reportOnly = false }) => {
                         {item.stat}
                       </span>
                     </div>
-                    <span className="text-[11px] text-slate-400 text-right max-w-[130px]">
+                    <span title={item.statDetail} className="line-clamp-2 text-[11px] text-slate-400 text-right max-w-[130px]">
                       {item.statDetail}
                     </span>
                   </div>
 
                   <div className="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/20">
                     <span className="text-[10px] font-bold uppercase tracking-wide text-cyan-300">Future result</span>
-                    <p className="mt-1 text-xs text-slate-200 leading-relaxed">{item.futureOutcome}</p>
+                    <p title={item.futureOutcome} className="mt-1 line-clamp-2 text-xs text-slate-200 leading-relaxed">{item.futureOutcome}</p>
                   </div>
 
                   {/* Prediction summary */}
-                  <p className="mt-3 text-xs text-slate-400 leading-relaxed font-sans">
+                  <p title={item.spokenBody} className="mt-2 line-clamp-2 text-xs text-slate-400 leading-relaxed font-sans">
                     {item.spokenBody}
                   </p>
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-slate-800/80">
                   <span className={`text-[10px] font-mono font-semibold flex items-center gap-1 ${
-                    (item.id === "pred-aqi" && forecastPoint) || (item.id === "pred-weather" && weatherForecastPoint)
+                    (item.id === "pred-aqi" && forecastPoint) ||
+                    (item.id === "pred-weather" && weatherForecastPoint) ||
+                    (item.id === "pred-pop" && populationProjection)
                       ? "text-emerald-300"
                       : "text-amber-300"
                   }`}>
-                    {(item.id === "pred-aqi" && forecastPoint) || (item.id === "pred-weather" && weatherForecastPoint)
+                    {(item.id === "pred-aqi" && forecastPoint) ||
+                    (item.id === "pred-weather" && weatherForecastPoint) ||
+                    (item.id === "pred-pop" && populationProjection)
                       ? <CheckCircle2 className="w-3 h-3" />
                       : <AlertTriangle className="w-3 h-3" />}
                     <span>
-                      {(item.id === "pred-aqi" && forecastPoint) || (item.id === "pred-weather" && weatherForecastPoint)
+                      {(item.id === "pred-pop" && populationProjection)
+                        ? item.dataType === "population-trend"
+                          ? `Assumed ${(ASSUMED_ANNUAL_POPULATION_GROWTH_RATE * 100).toFixed(0)}% growth · not observed`
+                          : "Official historical trend extrapolation · not an official forecast"
+                        : (item.id === "pred-aqi" && forecastPoint) || (item.id === "pred-weather" && weatherForecastPoint)
                         ? "Public hourly model forecast · not a local sensor observation"
                         : item.dataType === "milestone"
                           ? "Scenario-derived planning milestone · not a validated AI forecast"
@@ -1736,7 +2096,7 @@ export const FuturePredictions = ({ reportOnly = false }) => {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-base font-bold text-white">
-                LIVE HOURLY FORECASTS
+                PUBLIC HOURLY MODEL FORECASTS
               </h3>
               <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                 OPEN-METEO
@@ -1847,9 +2207,9 @@ export const FuturePredictions = ({ reportOnly = false }) => {
               <FileText className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">City Forecast Report</h3>
+              <h3 className="text-base font-bold text-white">{demoScenario ? "City Decision Report" : "City Forecast Report"}</h3>
               <p className="mt-1 text-xs text-slate-400">
-                Live-data strategic assessment of {city.name}'s next {forecastHours} hours, including available forecasts, data gaps, solutions, and validity statements.
+                Outlook assessment for {city.name}'s next {forecastHours} hours, with available public model forecasts, data gaps, and rule-based planning prompts.
               </p>
             </div>
           </div>
@@ -1861,6 +2221,18 @@ export const FuturePredictions = ({ reportOnly = false }) => {
             {generatedReport ? "Refresh report" : "Generate report"}
           </button>
         </div>
+
+        {demoScenario && (
+          <div className="mt-4 rounded-lg border border-cyan-500/25 bg-cyan-500/[0.05] p-4">
+            <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-200">Imported dashboard decision · illustrative only</div>
+            <div className="mt-2 text-sm font-bold text-white">{demoScenario.intervention}</div>
+            <div className="mt-2 grid gap-2 text-xs sm:grid-cols-2">
+              <div className="rounded-md border border-slate-800 bg-slate-950/60 p-3 text-slate-300">Traffic pressure demo index: <strong className="text-white">{demoScenario.trafficBefore} → {demoScenario.trafficAfter} points</strong></div>
+              <div className="rounded-md border border-slate-800 bg-slate-950/60 p-3 text-slate-300">AQI · {demoScenario.aqiSource}: <strong className="text-white">{demoScenario.aqiBefore} → {demoScenario.aqiAfter} AQI points</strong></div>
+            </div>
+            <p className="mt-2 text-[10px] text-slate-400">Fixed demo assumptions, not a calibrated transport or emissions forecast. Generate the report to include this scenario in the downloadable outputs.</p>
+          </div>
+        )}
 
         {generatedReport && (
           <div className="mt-5 pt-5 border-t border-emerald-500/15">
@@ -1877,25 +2249,32 @@ export const FuturePredictions = ({ reportOnly = false }) => {
                     <img className="h-9 w-9" src={YugNirmanMark} alt="" />
                   </span>
                   <div className="min-w-0">
-                    <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[#70e2d0]">YUG NIRMAN · CITY FORECAST REPORT</p>
+                    <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[#70e2d0]">YUG NIRMAN · URBAN INTELLIGENCE REPORT</p>
                     <h4 className="truncate text-sm font-bold text-white">
-                      {generatedReport.city} · {generatedReport.targetYear} Strategic Assessment
+                      {generatedReport.city} · {generatedReport.targetYear}
                     </h4>
+                    <p className="mt-1 text-[10px] font-mono text-slate-400">{generatedReport.reportId} · Generated {new Date(generatedReport.generatedAt).toLocaleString()}</p>
                   </div>
                 </div>
                 <div className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-200">
                   Valid through: {generatedReport.validityYear ?? generatedReport.targetYear}
                 </div>
               </div>
+              <div className="flex flex-wrap gap-2 border-b border-slate-800 px-4 py-3" aria-label="Report export options">
+                <button type="button" onClick={() => downloadReport("csv")} className="rounded-lg border border-slate-700 px-3 py-2 text-[10px] font-semibold text-slate-200 hover:border-cyan-400/40 hover:text-cyan-100">Download CSV</button>
+                <button type="button" onClick={() => downloadReport("json")} className="rounded-lg border border-slate-700 px-3 py-2 text-[10px] font-semibold text-slate-200 hover:border-cyan-400/40 hover:text-cyan-100">Download JSON</button>
+                <button type="button" onClick={downloadPdfReport} className="rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-2 text-[10px] font-semibold text-cyan-100 hover:bg-cyan-400/15">Download PDF</button>
+                <button type="button" onClick={printReport} className="rounded-lg border border-slate-700 px-3 py-2 text-[10px] font-semibold text-slate-200 hover:border-cyan-400/40 hover:text-cyan-100">Print report</button>
+              </div>
 
               <div className="grid gap-4 px-4 py-4 md:grid-cols-2">
                 <article className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-                  <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Executive Summary</h5>
+                  <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">01 · Executive Summary</h5>
                   <p className="mt-3 text-sm leading-6 text-slate-200">{generatedReport.executiveSummary}</p>
                 </article>
 
                 <article className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-                  <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Assessment Boundary and Validity</h5>
+                  <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Report Scope & Validity</h5>
                   <ul className="mt-3 space-y-2 text-[11px] leading-5 text-slate-300">
                     <li><span className="font-semibold text-white">Model:</span> {generatedReport.model}</li>
                     <li><span className="font-semibold text-white">Forecast horizon:</span> {generatedReport.targetYear}</li>
@@ -1906,6 +2285,37 @@ export const FuturePredictions = ({ reportOnly = false }) => {
               </div>
             </div>
 
+            <section className="mb-4 grid gap-4 md:grid-cols-2">
+              <article className="rounded-lg border border-cyan-500/20 bg-cyan-500/[0.035] p-4">
+                <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-cyan-200">02 · Why This Analysis?</h5>
+                <p className="mt-2 text-[11px] leading-relaxed text-slate-300">{generatedReport.whyThisAnalysis}</p>
+              </article>
+              <article className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
+                <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-200">05 · Intervention / Scenario</h5>
+                <p className="mt-2 text-xs font-semibold text-white">{generatedReport.interventionDetails.name}</p>
+                <dl className="mt-3 grid grid-cols-1 gap-2 text-[10px] text-slate-400 sm:grid-cols-3">
+                  <div><dt>Cost</dt><dd className="text-slate-200">{generatedReport.interventionDetails.cost}</dd></div>
+                  <div><dt>Implementation</dt><dd className="text-slate-200">{generatedReport.interventionDetails.implementationTime}</dd></div>
+                  <div><dt>Affected zones</dt><dd className="text-slate-200">{generatedReport.interventionDetails.affectedZones}</dd></div>
+                </dl>
+              </article>
+            </section>
+
+            <section className="mb-4 rounded-lg border border-slate-800 bg-slate-950/50 p-4">
+              <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-200">03 · Current City Condition</h5>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {generatedReport.currentCondition.map((item) => (
+                  <article key={item.label} className="rounded-md border border-slate-800 bg-slate-900/50 p-3">
+                    <p className="text-[10px] uppercase tracking-wide text-slate-400">{item.label}</p>
+                    <p className="mt-1 text-sm font-semibold text-white">{item.value}</p>
+                    <p className="mt-1 text-[9px] leading-relaxed text-slate-500">{item.source}</p>
+                  </article>
+                ))}
+              </div>
+              <p className="mt-3 text-[10px] text-amber-200">Map and location-specific hotspot layers are unavailable in this report; no affected zones are inferred.</p>
+            </section>
+
+            <h5 className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-cyan-200">09 · Future Forecast & Outlook Details</h5>
             <div className="overflow-x-auto rounded-lg border border-slate-700/70">
               <table className="w-full min-w-[620px] text-left text-xs">
                 <thead className="bg-slate-900/90 text-slate-400">
@@ -1934,7 +2344,7 @@ export const FuturePredictions = ({ reportOnly = false }) => {
             {generatedReport.scenarioProjection && (
               <section className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/[0.04] p-4">
                 <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-amber-200">
-                  Illustrative city scenario · {generatedReport.scenarioProjection.year}
+                  09 · Illustrative city scenario · {generatedReport.scenarioProjection.year}
                 </h5>
                 <p className="mt-1 text-[10px] text-slate-400">
                   {generatedReport.scenarioProjection.source}; not real-time or validated data.
@@ -1951,9 +2361,21 @@ export const FuturePredictions = ({ reportOnly = false }) => {
               </section>
             )}
 
+            {generatedReport.decisionScenario && (
+              <section className="mt-4 rounded-lg border border-cyan-500/20 bg-cyan-500/[0.04] p-4">
+                <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-cyan-200">05 · Dashboard What-if Demo · Illustrative Only</h5>
+                <p className="mt-1 text-xs font-semibold text-white">{generatedReport.decisionScenario.intervention}</p>
+                <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
+                  <p className="rounded-md border border-slate-800 bg-slate-950/60 p-3 text-slate-300">Traffic pressure demo index: <strong className="text-white">{generatedReport.decisionScenario.trafficBefore} → {generatedReport.decisionScenario.trafficAfter} points</strong></p>
+                  <p className="rounded-md border border-slate-800 bg-slate-950/60 p-3 text-slate-300">AQI · {generatedReport.decisionScenario.aqiSource}: <strong className="text-white">{generatedReport.decisionScenario.aqiBefore} → {generatedReport.decisionScenario.aqiAfter} AQI points</strong></p>
+                </div>
+                <p className="mt-2 text-[10px] text-slate-400">{generatedReport.decisionScenario.source}</p>
+              </section>
+            )}
+
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               <section className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
-                <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-emerald-200">Forecast and Scenario Assessment</h5>
+                <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-emerald-200">09 · Forecast and Scenario Assessment</h5>
                 <div className="mt-3 space-y-3">
                   {generatedReport.indicators.map((indicator) => (
                     <article key={indicator.title} className="rounded-md border border-slate-800 bg-slate-900/40 p-3">
@@ -1970,7 +2392,8 @@ export const FuturePredictions = ({ reportOnly = false }) => {
               </section>
 
               <section className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
-                <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-amber-200">Risk and Constraint Analysis</h5>
+                <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-amber-200">04 · Problem & Evidence Review</h5>
+                <p className="mt-2 text-[10px] leading-relaxed text-slate-400">These are observed model watch items or data gaps, not verified root causes. No root-cause percentages or causal attribution are available.</p>
                 <div className="mt-3 space-y-3">
                   {(generatedReport.problems || []).map((problem, index) => {
                     const title = problem.title || problem.risk || `Problem ${index + 1}`;
@@ -1989,7 +2412,7 @@ export const FuturePredictions = ({ reportOnly = false }) => {
                           <span className="font-semibold text-white">Current state:</span> {current} · <span className="font-semibold text-white">Projected state:</span> {predicted}
                         </p>
                         <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
-                          <span className="font-semibold text-slate-200">Primary cause:</span> {cause}
+                          <span className="font-semibold text-slate-200">Evidence / verification:</span> {cause}
                         </p>
                       </article>
                     );
@@ -2000,7 +2423,7 @@ export const FuturePredictions = ({ reportOnly = false }) => {
 
             <section className="mt-5 rounded-lg border border-emerald-500/20 bg-emerald-500/[0.04] p-4" aria-labelledby="future-action-plan-title">
               <div className="mb-3">
-                <h5 id="future-action-plan-title" className="text-xs font-bold uppercase tracking-[0.12em] text-emerald-200">Strategic Intervention Framework</h5>
+                <h5 id="future-action-plan-title" className="text-xs font-bold uppercase tracking-[0.12em] text-emerald-200">12 · Planning Recommendations · Rule-Based Prompts</h5>
                 <p className="mt-1 text-[10px] leading-relaxed text-slate-400">The following measures are presented as formal planning actions for the projected conditions identified in this assessment.</p>
               </div>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -2012,6 +2435,96 @@ export const FuturePredictions = ({ reportOnly = false }) => {
                   </article>
                 ))}
               </div>
+            </section>
+
+            <div className="mt-5 rounded-lg border border-slate-800 bg-slate-950/50 p-4">
+              {generatedReport.cityTransformation ? (
+                <CityTransformation transformation={generatedReport.cityTransformation} title="06 · BEFORE vs AFTER · CITY TRANSFORMATION" />
+              ) : (
+                <section className="mb-4 rounded-lg border border-dashed border-cyan-500/25 bg-cyan-500/[0.035] p-4">
+                  <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-cyan-200">06 · City Transformation</h5>
+                  <p className="mt-2 text-[11px] leading-relaxed text-slate-300">
+                    No before-and-after intervention snapshot is attached to this report. Run an available what-if simulation to include its calculated demo outputs; unsupported after-values will remain not modeled.
+                  </p>
+                  <Link to="/what-if-simulator" className="mt-3 inline-flex rounded-lg border border-cyan-400/25 px-3 py-2 text-[11px] font-semibold text-cyan-200 hover:bg-cyan-400/10">
+                    Open What-if Simulator
+                  </Link>
+                </section>
+              )}
+            </div>
+
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <section className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
+                <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-200">07 · Impact Analysis</h5>
+                {generatedReport.cityTransformation ? (() => {
+                  const impact = summarizeTransformation(generatedReport.cityTransformation.metrics);
+                  return (
+                    <>
+                      <p className="mt-2 text-[11px] text-slate-300">{impact.improved.length} improved · {impact.worsened.length} deteriorated · {impact.unchanged.length} unchanged · {impact.unavailable.length} not modeled.</p>
+                      <ul className="mt-2 space-y-1 text-[10px] text-slate-400">
+                        {[...impact.improved, ...impact.worsened].map((metric) => (
+                          <li key={metric.key}>{metric.label}: {metric.before} → {metric.after} {metric.unit} ({metric.source})</li>
+                        ))}
+                      </ul>
+                    </>
+                  );
+                })() : (
+                  <p className="mt-2 text-[11px] text-slate-400">No intervention impact is calculated without an attached before/after simulation.</p>
+                )}
+              </section>
+              <section className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
+                <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-200">08 · Benefits & Trade-offs</h5>
+                {generatedReport.cityTransformation ? (
+                  <div className="mt-2 space-y-2 text-[10px] text-slate-300">
+                    <p><strong className="text-emerald-200">Benefits:</strong> {generatedReport.cityTransformation.explanation.benefits.join(" ") || "No benefit output is modeled."}</p>
+                    <p><strong className="text-amber-200">Trade-offs:</strong> {generatedReport.cityTransformation.explanation.tradeoffs.join(" ") || "No trade-off output is modeled."}</p>
+                  </div>
+                ) : (
+                  <p className="mt-2 text-[11px] text-slate-400">Benefits and trade-offs are not inferred from forecast indicators alone.</p>
+                )}
+              </section>
+            </div>
+
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <section className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
+                <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-200">10 · Scenario Comparison</h5>
+                <p className="mt-2 text-[11px] leading-relaxed text-slate-300">{generatedReport.scenarioComparison.reason}</p>
+                <Link to="/scenario-comparison" className="mt-3 inline-flex rounded-lg border border-cyan-400/25 px-3 py-2 text-[10px] font-semibold text-cyan-200 hover:bg-cyan-400/10">Open scenario comparison</Link>
+              </section>
+              <section className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
+                <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-200">11 · City System Connections</h5>
+                <p className="mt-2 text-[11px] leading-relaxed text-slate-300">{generatedReport.systemConnections.reason}</p>
+              </section>
+            </div>
+
+            <section className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/[0.035] p-4">
+              <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-amber-200">13 · Remaining Problems & Data Gaps</h5>
+              <p className="mt-2 text-[11px] leading-relaxed text-slate-300">
+                {generatedReport.problems.length
+                  ? `${generatedReport.problems.length} watch items or data gaps are listed in section 04.`
+                  : "No reportable watch item was returned by the available sources; this does not establish that the city has no unresolved problems."}
+                {generatedReport.cityTransformation
+                  ? ` ${summarizeTransformation(generatedReport.cityTransformation.metrics).unavailable.length} transformation metrics remain unmodeled.`
+                  : " No intervention-specific before/after snapshot is attached."}
+              </p>
+            </section>
+
+            <section className="mt-4 rounded-lg border border-cyan-500/20 bg-cyan-500/[0.035] p-4">
+              <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-cyan-200">14 · Final City Transformation</h5>
+              <p className="mt-2 text-sm font-semibold text-white">BEFORE <span className="text-cyan-300">→</span> PROBLEM REVIEW <span className="text-cyan-300">→</span> ANALYSIS <span className="text-cyan-300">→</span> INTERVENTION <span className="text-cyan-300">→</span> AFTER <span className="text-cyan-300">→</span> IMPACT</p>
+              <p className="mt-2 text-[10px] text-slate-400">Only stages supported by supplied simulation outputs are quantified; unavailable stages remain unmodeled.</p>
+            </section>
+
+            <section className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/[0.035] p-4">
+              <h5 className="text-[11px] font-bold uppercase tracking-[0.12em] text-emerald-200">15 · Final Conclusion & Data Transparency</h5>
+              <p className="mt-2 text-[11px] leading-relaxed text-slate-200">{generatedReport.finalConclusion}</p>
+              <dl className="mt-3 grid gap-2 text-[10px] text-slate-400 sm:grid-cols-2 lg:grid-cols-5">
+                <div><dt>Real data share</dt><dd className="text-slate-200">Not calculated</dd></div>
+                <div><dt>Simulated data share</dt><dd className="text-slate-200">Not calculated</dd></div>
+                <div><dt>Predicted data share</dt><dd className="text-slate-200">Not calculated</dd></div>
+                <div><dt>Model version</dt><dd className="text-slate-200">{generatedReport.dataTransparency.modelVersion}</dd></div>
+                <div><dt>Validated confidence</dt><dd className="text-slate-200">Not available</dd></div>
+              </dl>
             </section>
 
             <div className="mt-5 rounded-lg border border-slate-800 bg-slate-950/50 p-4">

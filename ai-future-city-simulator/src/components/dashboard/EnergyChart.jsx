@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
   Legend
 } from "recharts";
-import { Zap } from "lucide-react";
+import { Zap, Thermometer, AlertTriangle } from "lucide-react";
 import { useCity } from "../../context/CityContext";
 import { ENERGY_DATA } from "../../data/energyData";
 
@@ -32,12 +32,34 @@ const CustomEnergyTooltip = ({ active, payload }) => {
 };
 
 export const EnergyChart = () => {
-  const { energy, city, selectedCity } = useCity();
+  const { energy, city, selectedCity, liveWeather } = useCity();
   const [view, setView] = useState("demand");
   const usesReferenceProfile = !Object.prototype.hasOwnProperty.call(ENERGY_DATA, selectedCity);
   const sectorBreakdown = energy.breakdown || [];
   const hourlyGridLoad = energy.hourlyGridLoad || [];
   const supplySources = energy.sources || [];
+
+  // Live weather-based energy demand estimation
+  const liveTemp = liveWeather?.temperature_2m != null ? Number(liveWeather.temperature_2m) : null;
+  const hasLiveTemp = liveTemp != null && Number.isFinite(liveTemp);
+
+  let energyAdjustmentPct = 0;
+  let energyAdjustmentNote = "";
+  let energyAdjustmentColor = "text-emerald-400";
+  if (hasLiveTemp) {
+    if (liveTemp > 25) {
+      energyAdjustmentPct = Math.round((liveTemp - 25) * 1.2);
+      energyAdjustmentNote = `+${energyAdjustmentPct}% est. cooling load (${liveTemp.toFixed(1)}°C)`;
+      energyAdjustmentColor = energyAdjustmentPct > 15 ? "text-rose-400" : "text-amber-400";
+    } else if (liveTemp < 15) {
+      energyAdjustmentPct = Math.round((15 - liveTemp) * 0.8);
+      energyAdjustmentNote = `+${energyAdjustmentPct}% est. heating load (${liveTemp.toFixed(1)}°C)`;
+      energyAdjustmentColor = "text-blue-400";
+    } else {
+      energyAdjustmentNote = `Neutral range (${liveTemp.toFixed(1)}°C) · normal load`;
+      energyAdjustmentColor = "text-emerald-400";
+    }
+  }
 
   return (
     <div className="p-5 rounded-2xl glass-panel border border-cyan-500/20 flex flex-col justify-between">
@@ -49,7 +71,10 @@ export const EnergyChart = () => {
           </div>
           <div>
             <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
-              <span>ENERGY USAGE & GRID LOAD</span>
+              <span>ENERGY USAGE &amp; GRID LOAD</span>
+              <span className="px-2 py-0.5 text-[9px] font-bold rounded border bg-amber-500/10 text-amber-300 border-amber-500/20">
+                DEMO PROFILE
+              </span>
               <span className="px-2 py-0.2 text-[10px] font-semibold rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
                 {energy.totalConsumption}
               </span>
@@ -64,6 +89,22 @@ export const EnergyChart = () => {
           Peak: {energy.peakDemand}
         </span>
       </div>
+
+      <p className="mt-3 text-xs font-semibold text-slate-300">
+        Question: How is the illustrative energy profile split across time, sectors, and supply sources?
+      </p>
+
+      {/* Live Weather Energy Signal */}
+      {hasLiveTemp && (
+        <div className="mt-3 flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-900/60 border border-amber-500/20">
+          <Thermometer className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <div className="min-w-0">
+            <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Live weather input → simulated load estimate</span>
+            <p className={`text-xs font-mono font-bold mt-0.5 ${energyAdjustmentColor}`}>{energyAdjustmentNote}</p>
+          </div>
+          <span className="ml-auto text-[9px] text-slate-500 shrink-0">Open-Meteo heuristic</span>
+        </div>
+      )}
 
       <div className="mt-4 flex flex-wrap gap-1 rounded-xl border border-slate-800 bg-slate-900/80 p-1" role="group" aria-label="Energy grid views">
         {[
@@ -89,15 +130,15 @@ export const EnergyChart = () => {
         hourlyGridLoad.length > 0 ? (
           <div className="mt-3 h-52 w-full" aria-label="Illustrative hourly energy demand in megawatts">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={hourlyGridLoad} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+            <LineChart data={hourlyGridLoad} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(56, 189, 248, 0.08)" vertical={false} />
                 <XAxis dataKey="time" stroke="#64748b" fontSize={10} tickLine={false} />
                 <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} unit=" MW" />
                 <Tooltip content={<CustomEnergyTooltip />} />
                 <Legend wrapperStyle={{ fontSize: "10px" }} />
-                <Line type="monotone" dataKey="actual" name="Grid demand" stroke="#38bdf8" strokeWidth={2.5} dot={false} />
-                <Line type="monotone" dataKey="solar" name="Solar generation" stroke="#fbbf24" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="wind" name="Wind generation" stroke="#34d399" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="actual" name="Grid demand (profile)" stroke="#38bdf8" strokeWidth={2} dot={false} strokeDasharray="4 2" />
+                <Line type="monotone" dataKey="solar" name="Solar generation" stroke="#fbbf24" strokeWidth={1.5} dot={false} />
+                <Line type="monotone" dataKey="wind" name="Wind generation" stroke="#34d399" strokeWidth={1.5} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -172,7 +213,9 @@ export const EnergyChart = () => {
       )}
 
       <p className="mt-1 text-[10px] text-slate-500">
-        These are bundled illustrative profile values, not a live utility or microgrid telemetry feed.
+        {hasLiveTemp
+          ? "The chart remains a bundled profile and is not adjusted by current weather. The separate SIMULATED weather signal is a simple heuristic, not a grid-demand estimate or meter reading."
+          : "These are bundled illustrative profile values, not a verified historical series or live grid telemetry."}
       </p>
     </div>
   );

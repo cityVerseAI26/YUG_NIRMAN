@@ -1,0 +1,22 @@
+name = "city-digital-twin-data"
+main = "src/index.js"
+compatibility_date = "2026-10-04"
+
+[vars]
+ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:5174,http://localhost:5175,http://127.0.0.1:5173,http://127.0.0.1:5174,http://127.0.0.1:5175,https://cityverseai26.github.io,https://ai-future-city-simulator.yug-nirmanyug-nirman.workers.dev"
+
+[[ratelimits]]
+name = "SENSOR_RATE_LIMITER"
+namespace_id = "202610041"
+
+  [ratelimits.simple]
+  limit = 5
+  period = 60
+
+[[ratelimits]]
+name = "TRAFFIC_RATE_LIMITER"
+namespace_id = "202610042"
+
+  [ratelimits.simple]
+  limit = 120
+  period = 60

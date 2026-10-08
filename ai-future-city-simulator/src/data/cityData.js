@@ -1,4 +1,5 @@
 ﻿import { ADDITIONAL_CITIES } from "./additionalCities.js";
+import { POPULATION_ESTIMATES_2026 } from "./populationEstimates2026.js";
 
 export const CITIES = {
   mumbai: {
@@ -667,4 +668,12 @@ for (const city of ADDITIONAL_CITIES) {
 for (const city of Object.values(CITIES)) {
   city.country ||= "India";
   city.dataMode ||= "demo";
+  const populationEstimate = POPULATION_ESTIMATES_2026[city.id];
+  if (populationEstimate) {
+    city.metrics.population = {
+      ...city.metrics.population,
+      value: populationEstimate.population,
+      display: `${(populationEstimate.population / 1_000_000).toFixed(1)}M`,
+    };
+  }
 }

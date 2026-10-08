@@ -7,12 +7,22 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "test:climate-risk": "node --test src/utils/climateRiskEngine.test.js",
+    "test:diagnosis": "node --test src/utils/cityDiagnosis.test.js",
+    "test:city-health": "node --test src/utils/cityHealthScore.test.js",
+    "test:report-snapshot": "node --test src/utils/reportSnapshot.test.js",
+    "test:feature-why": "node --test src/data/featureExplanations.test.js",
+    "test:transformation": "node --test src/utils/cityTransformation.test.js",
+    "test:worker": "node --test api-worker/src/index.test.js",
+    "test:population": "node --test src/data/populationEstimates2026.test.js",
+    "preview": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "autoprefixer": "^10.5.5",
     "canvas-confetti": "^1.9.4",
+    "fflate": "^0.8.3",
     "framer-motion": "^13.2.0",
     "jspdf": "^4.2.1",
     "leaflet": "^1.9.4",
@@ -27,10 +37,12 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.62.5",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
     "oxlint": "^1.79.0",
-    "vite": "^8.2.2"
+    "vite": "^8.2.2",
+    "wrangler": "^4.147.0"
   }
 }

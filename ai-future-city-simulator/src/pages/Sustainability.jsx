@@ -11,10 +11,11 @@ export const Sustainability = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="SUSTAINABILITY & NET-ZERO MATRIX"
-        subtitle="Sample energy/water profiles and an illustrative decarbonization roadmap"
+        title="Energy & Sustainability"
+        subtitle="Explore example energy and water information and climate actions."
         icon={Recycle}
         badge="Scenario data"
+        whyFeatureIds={["city-resources", "energy-intelligence", "water-intelligence", "waste-management"]}
       />
 
       <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs text-amber-100">
@@ -24,7 +25,9 @@ export const Sustainability = () => {
       {/* Resource Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <EnergyChart />
-        <WaterChart />
+        <div id="water-consumption" className="scroll-mt-24">
+          <WaterChart />
+        </div>
       </div>
 
       {/* Decarbonization Roadmap */}

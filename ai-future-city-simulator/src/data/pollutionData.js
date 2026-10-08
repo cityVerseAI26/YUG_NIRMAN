@@ -1,4 +1,4 @@
-﻿export const POLLUTION_DATA = {
+export const POLLUTION_DATA = {
   mumbai: {
     currentAQI: 156,
     status: "POOR",
@@ -154,6 +154,6 @@
 export const AQI_LEVELS = [
   { range: "0 - 50", label: "Good", color: "text-emerald-400", bg: "bg-emerald-500/20", border: "border-emerald-500/40" },
   { range: "51 - 100", label: "Moderate", color: "text-blue-400", bg: "bg-blue-500/20", border: "border-blue-500/40" },
-  { range: "101 - 200", label: "Poor / Unhealthy", color: "text-amber-400", bg: "bg-amber-500/20", border: "border-amber-500/40" },
-  { range: "201 - 300+", label: "Dangerous / Severe", color: "text-rose-400", bg: "bg-rose-500/20", border: "border-rose-500/40" }
+  { range: "101 - 200", label: "Unhealthy", color: "text-amber-400", bg: "bg-amber-500/20", border: "border-amber-500/40" },
+  { range: "201 - 300+", label: "Severe", color: "text-rose-400", bg: "bg-rose-500/20", border: "border-rose-500/40" }
 ];

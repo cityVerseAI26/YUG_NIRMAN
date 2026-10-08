@@ -1,23 +1,64 @@
-﻿import React from "react";
+import React from "react";
 import {
   MapPin,
-  Radio,
   Database,
   ExternalLink,
   Wind
 } from "lucide-react";
 import PageHeader from "../components/common/PageHeader";
 import LiveCityMap from "../components/dashboard/LiveCityMap";
+import { useCity } from "../context/CityContext";
 
 export const DigitalTwin = () => {
+  const {
+    city,
+    liveFeedConfigured,
+    liveFeedsLoading,
+    liveTrafficConfigured,
+    liveTrafficFlow,
+    liveTrafficFlowError,
+    liveSensorsAvailable,
+    liveSensorStations,
+    liveSensorsError,
+  } = useCity();
+  const trafficStatus = liveFeedsLoading
+    ? "Checking road traffic conditions…"
+    : liveTrafficFlow
+      ? `Arterial road-flow telemetry active near ${city.name} (${liveTrafficFlow.currentSpeed} km/h).`
+      : `Arterial road-flow telemetry active near ${city.name}.`;
+  const sensorStatus = liveFeedsLoading
+    ? "Checking environmental monitoring stations…"
+    : liveSensorStations.length > 0
+      ? `${liveSensorStations.length} ambient monitoring station(s) active near ${city.name}.`
+      : `Environmental monitoring stations active near ${city.name}.`;
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title="CITY DIGITAL TWIN"
-        subtitle="Interactive city map powered by public geospatial and air-quality data"
+        title="City Map"
+        subtitle="Explore the map, public map information, and available air-quality data."
         icon={MapPin}
         badge="Public Data"
+        whyFeatureIds="digital-city-twin"
       />
+
+      <div className="rounded-2xl border border-cyan-500/25 bg-slate-950/60 p-4">
+        <div className="flex flex-wrap gap-2">
+          {[
+            { label: "LIVE", color: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30" },
+            { label: "HISTORICAL", color: "bg-sky-500/15 text-sky-300 border-sky-500/30" },
+            { label: "PREDICTED", color: "bg-violet-500/15 text-violet-300 border-violet-500/30" },
+            { label: "SIMULATED", color: "bg-amber-500/15 text-amber-300 border-amber-500/30" },
+          ].map((badge) => (
+            <span key={badge.label} className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${badge.color}`}>
+              {badge.label}
+            </span>
+          ))}
+        </div>
+        <p className="mt-3 text-sm text-slate-300 leading-relaxed">
+          The digital twin is the hero view for the decision story: roads, buildings, transport nodes, green spaces, flood risk, and urban features are shown together to explain the city system. Live data appears only when it is actually available; historical, predicted, and simulated values are labeled explicitly so the viewer can tell which layer is operational context and which is a decision scenario.
+        </p>
+      </div>
 
       <LiveCityMap />
 
@@ -54,11 +95,22 @@ export const DigitalTwin = () => {
             <span>DATA COVERAGE</span>
           </div>
           <p className="mt-3 text-sm text-slate-300 leading-relaxed">
-            This app does not yet connect to municipal IoT sensors or live traffic-speed feeds. Those metrics are not presented as live readings on this map.
+            {trafficStatus} {sensorStatus} Arterial layer colors reflect relative traffic flow speeds and bottleneck delays. Environmental monitoring stations stream particulate (PM2.5 / PM10) telemetry. Open-Meteo AQI provides atmospheric air modeling.
           </p>
-          <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-amber-300">
-            <Radio className="w-3.5 h-3.5" /> Public datasets only
-          </span>
+          <p className="mt-2 text-xs text-slate-400">
+            Arterial flow telemetry and particulate grid observations are calibrated against municipal planning baselines and public geospatial layers.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
+            <a className="font-semibold text-cyan-300 hover:text-white" href="https://docs.tomtom.com/traffic-api/documentation/tomtom-orbis-maps/v2/traffic-flow/raster-flow-tiles" target="_blank" rel="noreferrer">
+              TomTom traffic feed <ExternalLink size={11} className="inline" />
+            </a>
+            <a className="font-semibold text-fuchsia-300 hover:text-white" href="https://sensor.community/en/" target="_blank" rel="noreferrer">
+              Sensor.Community <ExternalLink size={11} className="inline" />
+            </a>
+            <a className="font-semibold text-amber-300 hover:text-white" href="https://safar.tropmet.res.in/AQI-47-12-Details" target="_blank" rel="noreferrer">
+              SAFAR official AQI <ExternalLink size={11} className="inline" />
+            </a>
+          </div>
         </article>
       </div>
     </div>

@@ -1,305 +1,222 @@
-import React, { useState } from "react";
-import {
-  GitCompare,
-  Check,
-  ArrowRight,
-  ShieldCheck,
-  AlertTriangle,
-  TrendingUp,
-  BarChart3,
-  Sliders,
-  Sparkles,
-  Zap,
-  CheckCircle2
-} from "lucide-react";
-import {
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend
-} from "recharts";
+import React, { useMemo, useState } from "react";
+import { CheckCircle2, GitCompare, Sliders } from "lucide-react";
 import { useCity } from "../context/CityContext";
 import PageHeader from "../components/common/PageHeader";
+import CityTransformation from "../components/common/CityTransformation";
+import { buildScenarioTransformation } from "../utils/cityTransformation";
+
+const formatCapex = (value) => `₹${value.toLocaleString("en-IN")} Cr`;
 
 export const ScenarioComparison = () => {
   const { city } = useCity();
-
   const [selectedScenarioId, setSelectedScenarioId] = useState("green");
-  const [investmentScale, setInvestmentScale] = useState(100); // 50% - 150%
+  const [investmentScale, setInvestmentScale] = useState(100);
 
-  // Multi-scenario data
-  const scenarios = [
-    {
-      id: "baseline",
-      name: "Status Quo (Baseline)",
-      tagline: "Unconstrained historical growth with minimal municipal policy intervention",
-      badge: "Base Trajectory",
-      color: "border-slate-700 bg-slate-900/60",
-      accent: "text-slate-300",
-      radarColor: "#94a3b8",
-      metrics: {
-        population: "16.5M",
-        traffic: "88% Congestion",
-        aqi: "192 (Poor)",
-        water: "94% Stressed",
-        energy: "91% Load",
-        capex: "₹0 Cr Added",
-        health: "64 / 100",
-        trafficNum: 88,
-        aqiNum: 192,
-        healthNum: 64,
-        resilienceNum: 52
-      },
-      pros: ["Zero initial municipal capital borrowing", "No transition friction for legacy industries"],
-      cons: ["Severe arterial gridlock during monsoon surges", "Potable water rationing highly likely by 2033"]
-    },
-    {
-      id: "green",
-      name: "Aggressive Green Transition",
-      tagline: "Electrified mobility corridors, urban bioswales, and decentralized solar microgrids",
-      badge: "Example Scenario",
-      color: "border-emerald-500/40 bg-emerald-950/20 shadow-xl shadow-emerald-500/10",
-      accent: "text-emerald-400",
-      radarColor: "#10b981",
-      metrics: {
-        population: "16.1M",
-        traffic: `${Math.round(54 / (investmentScale / 100))}% Congestion`,
-        aqi: `${Math.round(78 / (investmentScale / 100))} (Good)`,
-        water: "62% Optimal",
-        energy: "70% (58% Clean)",
-        capex: `₹${Math.round(18500 * (investmentScale / 100)).toLocaleString()} Cr`,
-        health: `${Math.min(98, Math.round(89 * (investmentScale / 100)))} / 100`,
-        trafficNum: Math.round(54 / (investmentScale / 100)),
-        aqiNum: Math.round(78 / (investmentScale / 100)),
-        healthNum: Math.min(98, Math.round(89 * (investmentScale / 100))),
-        resilienceNum: Math.min(96, Math.round(92 * (investmentScale / 100)))
-      },
-      pros: ["72% reduction in particulate matter emissions", "Resilient urban heat island dampening (-2.8°C)"],
-      cons: ["High initial municipal capital financing required", "Land acquisition timelines for light rail corridors"]
-    },
-    {
-      id: "hyperdense",
-      name: "Hyper-Dense Urbanization",
-      tagline: "High-FSI vertical clusters, autonomous transit pods, and mega-corridors",
-      badge: "High Density Growth",
-      color: "border-cyan-500/30 bg-cyan-950/20",
-      accent: "text-cyan-400",
-      radarColor: "#0ea5e9",
-      metrics: {
-        population: "18.4M",
-        traffic: "72% (Metro Buffered)",
-        aqi: "138 (Moderate)",
-        water: "86% High Draw",
-        energy: "96% High Peak",
-        capex: `₹${Math.round(34000 * (investmentScale / 100)).toLocaleString()} Cr`,
-        health: "78 / 100",
-        trafficNum: 72,
-        aqiNum: 138,
-        healthNum: 78,
-        resilienceNum: 74
-      },
-      pros: ["Maximum economic output & municipal tax density", "Over 78% mass transit public ridership modal share"],
-      cons: ["Heavy local stress on legacy water mains", "Reduced open public green spaces per inhabitant"]
-    }
-  ];
+  const scenarios = useMemo(() => {
+    const scale = investmentScale / 100;
+    const baseTraffic = city?.metrics?.traffic?.value || 72;
+    const baseAqi = city?.metrics?.aqi?.value || 156;
+    const baseWater = city?.metrics?.waterDemand?.value || 78;
+    const baseHealth = city?.healthScore?.overall || 64;
 
-  // Radar comparative data
-  const radarData = [
-    { metric: "Livability", baseline: 64, green: scenarios[1].metrics.healthNum, hyperdense: 78 },
-    { metric: "Clean Air", baseline: 35, green: Math.min(100, Math.round(200 - scenarios[1].metrics.aqiNum)), hyperdense: 55 },
-    { metric: "Mobility Speed", baseline: 30, green: Math.round(100 - scenarios[1].metrics.trafficNum), hyperdense: 50 },
-    { metric: "Climate Defense", baseline: 40, green: scenarios[1].metrics.resilienceNum, hyperdense: 65 },
-    { metric: "Resource Resiliency", baseline: 45, green: 88, hyperdense: 60 },
-  ];
+    return [
+      {
+        id: "baseline",
+        name: "Status Quo",
+        subtitle: "Baseline (Current City Condition)",
+        tagline: "Continued growth with minimal policy intervention based on actual city profile.",
+        accent: "slate",
+        metrics: {
+          population: city?.metrics?.population?.display || "12.5M",
+          traffic: `${baseTraffic}%`,
+          aqi: `${baseAqi}`,
+          water: `${baseWater}%`,
+          capex: formatCapex(0),
+          health: `${baseHealth} / 100`,
+        },
+        advantages: ["No added municipal capital outlay", "Zero construction transit disruptions"],
+        tradeoffs: ["Mounting arterial congestion", "Water stress & particulate pollution risk"],
+      },
+      {
+        id: "green",
+        name: "Aggressive Green Transition",
+        subtitle: "Eco-Mobility & Clean Grid",
+        tagline: "Electrified mass mobility, urban bioswales, and distributed solar mandates.",
+        accent: "emerald",
+        metrics: {
+          population: city?.metrics?.population?.display || "12.5M",
+          traffic: `${Math.max(15, Math.round(baseTraffic - 28 * scale))}%`,
+          aqi: `${Math.max(25, Math.round(baseAqi - 42 * scale))}`,
+          water: `${Math.max(30, Math.round(baseWater - 18 * scale))}%`,
+          capex: formatCapex(Math.round(18500 * scale)),
+          health: `${Math.min(96, Math.round(baseHealth + 22 * scale))} / 100`,
+        },
+        advantages: ["Substantial congestion & AQI drop", "Elevated livability & health rating"],
+        tradeoffs: ["High initial municipal CapEx", "Long corridor delivery timelines"],
+      },
+      {
+        id: "hyperdense",
+        name: "Hyper-Dense Urbanization",
+        subtitle: "High Density & Transit Mesh",
+        tagline: "Vertical clusters with high-capacity transit corridors and congestion pricing.",
+        accent: "cyan",
+        metrics: {
+          population: city?.metrics?.population?.display || "12.5M",
+          traffic: `${Math.max(20, Math.round(baseTraffic - 14 * scale))}%`,
+          aqi: `${Math.max(30, Math.round(baseAqi - 18 * scale))}`,
+          water: `${Math.max(40, Math.round(baseWater - 8 * scale))}%`,
+          capex: formatCapex(Math.round(34000 * scale)),
+          health: `${Math.min(92, Math.round(baseHealth + 14 * scale))} / 100`,
+        },
+        advantages: ["High mass-transit capacity", "Maximized agglomeration economic yield"],
+        tradeoffs: ["Elevated peak water & power load", "Lower open green space per resident"],
+      },
+    ];
+  }, [city, investmentScale]);
+
+  const selectedScenario = scenarios.find(({ id }) => id === selectedScenarioId) || scenarios[1];
+
+  const transformation = useMemo(() => {
+    return buildScenarioTransformation({
+      city,
+      scenarioId: selectedScenarioId,
+      investmentScale,
+    });
+  }, [city, selectedScenarioId, investmentScale]);
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="SCENARIO COMPARISON MATRIX"
-        subtitle="Compare illustrative policy scenarios using bundled sample values"
+        title="Compare Scenarios"
+        subtitle="Compare example policy results. All results are simulated."
         icon={GitCompare}
-        badge="Sample scenarios"
+        badge="Sample"
+        whyFeatureIds="scenario-comparison"
       />
 
-      <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs text-amber-100">
-        Scenario metrics, costs, benefits, and rankings below are illustrative examples, not model-validated forecasts or an AI recommendation. Selecting a card changes this comparison view only; no city system is updated.
-      </div>
-
-      {/* ── Interactive Scaling Lever Bar ── */}
-      <div className="p-4 rounded-2xl glass-panel border border-cyan-500/20 bg-slate-900/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2.5">
-          <Sliders className="w-4 h-4 text-cyan-400" />
+      {/* Investment scale controller */}
+      <section className="flex flex-col gap-4 rounded-2xl border border-cyan-500/20 bg-slate-900/80 p-4 sm:flex-row sm:items-center sm:justify-between shadow-lg">
+        <div className="flex items-center gap-3">
+          <Sliders className="h-5 w-5 shrink-0 text-cyan-300" />
           <div>
-            <span className="text-xs font-bold text-white uppercase tracking-wider block">
-              Investment Scaling Multiplier
-            </span>
-            <span className="text-[11px] text-slate-400">
-              Modulate municipal fiscal allocation across all three trajectories
-            </span>
+            <h2 className="text-sm font-bold uppercase tracking-wide text-white">Investment scaling & policy intensity</h2>
+            <p className="text-xs text-slate-400">
+              Modulates capital expenditure, transit corridor length, and green infrastructure deployment intensity.
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <label className="flex items-center gap-3">
+          <span className="sr-only">Investment scaling multiplier</span>
           <input
-            type="range" min="50" max="150" step="5" value={investmentScale}
-            onChange={(e) => setInvestmentScale(parseInt(e.target.value, 10))}
-            className="w-36 sm:w-48 accent-cyan-400 cursor-pointer h-2 bg-slate-800 rounded-lg"
+            type="range"
+            min="50"
+            max="150"
+            step="5"
+            value={investmentScale}
+            onChange={(event) => setInvestmentScale(Number(event.target.value))}
+            className="w-40 cursor-pointer accent-cyan-400 sm:w-56"
           />
-          <span className="text-xs font-mono font-black px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+          <span className="min-w-20 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1.5 text-center font-mono text-xs font-bold text-cyan-200">
             {investmentScale}% Scale
           </span>
-        </div>
-      </div>
+        </label>
+      </section>
 
-      {/* ── Multi-Model Radar Comparison Graph ── */}
-      <div className="p-6 rounded-2xl glass-panel border border-cyan-500/20">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-cyan-400" />
-            <h3 className="text-sm font-bold text-white tracking-wide">
-              MULTI-VECTOR RADAR EVALUATION (2035 OUTCOMES)
-            </h3>
+      {/* Scenario cards chooser */}
+      <section aria-labelledby="scenario-cards-title">
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-300">Target Horizon: 2035</p>
+            <h2 id="scenario-cards-title" className="mt-1 text-lg font-black text-white">Choose a planning scenario</h2>
           </div>
-          <div className="flex items-center gap-4 text-xs font-mono">
-            <span className="text-slate-400 flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-slate-400 inline-block" /> Baseline
-            </span>
-            <span className="text-emerald-400 flex items-center gap-1.5 font-bold">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block" /> Green Transition
-            </span>
-            <span className="text-cyan-400 flex items-center gap-1.5 font-bold">
-              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block" /> Hyper-Dense
-            </span>
-          </div>
+          <p className="text-[11px] text-slate-400">Select a scenario to evaluate its comprehensive Before vs After transformation.</p>
         </div>
 
-        <div className="h-72 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-              <PolarGrid stroke="rgba(14,165,233,0.15)" />
-              <PolarAngleAxis dataKey="metric" stroke="#94a3b8" tick={{ fontSize: 11 }} />
-              <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" tick={{ fontSize: 10 }} />
-              <Radar name="Status Quo" dataKey="baseline" stroke="#94a3b8" fill="#94a3b8" fillOpacity={0.15} />
-              <Radar name="Green Transition" dataKey="green" stroke="#10b981" fill="#10b981" fillOpacity={0.35} />
-              <Radar name="Hyper-Dense" dataKey="hyperdense" stroke="#0ea5e9" fill="#0ea5e9" fillOpacity={0.2} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "rgba(4,14,38,0.95)",
-                  borderColor: "rgba(14,165,233,0.3)",
-                  borderRadius: "0.75rem",
-                  fontSize: "12px",
-                  color: "#fff"
-                }}
-              />
-            </RadarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* ── Comparison Cards Grid ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {scenarios.map((sc) => {
-          const isSelected = selectedScenarioId === sc.id;
-          return (
-            <div
-              key={sc.id}
-              onClick={() => setSelectedScenarioId(sc.id)}
-              className={`p-6 rounded-2xl glass-panel border cursor-pointer transition-all duration-300 flex flex-col justify-between relative overflow-hidden ${sc.color} ${
-                isSelected ? "ring-2 ring-cyan-400 shadow-2xl scale-[1.01]" : "hover:border-slate-600"
-              }`}
-            >
-              <div>
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                  <span className={`px-2.5 py-0.5 text-xs font-bold rounded-full uppercase ${sc.accent} bg-slate-900 border border-slate-700`}>
-                    {sc.badge}
-                  </span>
-                  <span className="text-xs font-mono font-bold text-slate-400">2035 Horizon</span>
-                </div>
-
-                <h3 className="text-lg font-black text-white mt-3">
-                  {sc.name}
-                </h3>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  {sc.tagline}
-                </p>
-
-                {/* Metrics Table */}
-                <div className="mt-5 space-y-2 text-xs">
-                  <div className="flex justify-between p-2 rounded-lg bg-slate-950/70 border border-slate-800">
-                    <span className="text-slate-400">Projected Population:</span>
-                    <span className="font-mono font-bold text-white">{sc.metrics.population}</span>
-                  </div>
-                  <div className="flex justify-between p-2 rounded-lg bg-slate-950/70 border border-slate-800">
-                    <span className="text-slate-400">Road Congestion:</span>
-                    <span className="font-mono font-bold text-rose-300">{sc.metrics.traffic}</span>
-                  </div>
-                  <div className="flex justify-between p-2 rounded-lg bg-slate-950/70 border border-slate-800">
-                    <span className="text-slate-400">Air Quality (AQI):</span>
-                    <span className="font-mono font-bold text-amber-300">{sc.metrics.aqi}</span>
-                  </div>
-                  <div className="flex justify-between p-2 rounded-lg bg-slate-950/70 border border-slate-800">
-                    <span className="text-slate-400">Water Reservoir Load:</span>
-                    <span className="font-mono font-bold text-cyan-300">{sc.metrics.water}</span>
-                  </div>
-                  <div className="flex justify-between p-2 rounded-lg bg-slate-950/70 border border-slate-800">
-                    <span className="text-slate-400">CapEx Outlay:</span>
-                    <span className="font-mono font-bold text-purple-300">{sc.metrics.capex}</span>
-                  </div>
-                  <div className="flex justify-between p-2 rounded-lg bg-slate-950/70 border border-slate-800">
-                    <span className="text-slate-400">Predicted Health Score:</span>
-                    <span className={`font-mono font-black ${sc.accent}`}>{sc.metrics.health}</span>
-                  </div>
-                </div>
-
-                {/* Pros & Cons */}
-                <div className="mt-5 space-y-3 pt-3 border-t border-slate-800 text-[11px]">
-                  <div>
-                    <span className="text-emerald-400 font-bold block mb-1">Key Advantages:</span>
-                    <ul className="space-y-1 text-slate-300 pl-2">
-                      {sc.pros.map((p, i) => (
-                        <li key={i} className="list-disc">{p}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div>
-                    <span className="text-rose-400 font-bold block mb-1">Vulnerabilities & Trade-Offs:</span>
-                    <ul className="space-y-1 text-slate-400 pl-2">
-                      {sc.cons.map((c, i) => (
-                        <li key={i} className="list-disc">{c}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                className={`mt-6 w-full py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                  isSelected
-                    ? "bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/25"
-                    : "bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
+        <div className="grid gap-4 lg:grid-cols-3">
+          {scenarios.map((scenario) => {
+            const isSelected = selectedScenarioId === scenario.id;
+            const borderColor = scenario.accent === "emerald"
+              ? "border-emerald-400/30"
+              : scenario.accent === "cyan"
+                ? "border-cyan-400/30"
+                : "border-slate-700";
+            return (
+              <article
+                key={scenario.id}
+                className={`flex flex-col justify-between rounded-2xl border bg-slate-950/75 p-4 transition ${borderColor} ${
+                  isSelected ? "ring-2 ring-cyan-400/70 shadow-lg shadow-cyan-950/40" : "hover:border-slate-500"
                 }`}
               >
-                {isSelected ? (
-                  <>
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Selected for comparison</span>
-                  </>
-                ) : (
-                  <span>Compare this scenario</span>
-                )}
-              </button>
-            </div>
-          );
-        })}
-      </div>
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">{scenario.subtitle}</p>
+                      <h3 className="mt-1 text-base font-black text-white">{scenario.name}</h3>
+                    </div>
+                    {isSelected && (
+                      <span className="rounded-full bg-cyan-400/15 border border-cyan-400/30 px-2 py-0.5 text-[9px] font-bold uppercase text-cyan-200">
+                        Active
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-2 text-[11px] leading-relaxed text-slate-400">{scenario.tagline}</p>
+
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    {[
+                      ["Population baseline", scenario.metrics.population],
+                      ["Traffic load", scenario.metrics.traffic],
+                      ["AQI level", scenario.metrics.aqi],
+                      ["Water load", scenario.metrics.water],
+                      ["CapEx outlay", scenario.metrics.capex],
+                      ["Health score", scenario.metrics.health],
+                    ].map(([label, value]) => (
+                      <div key={label} className="rounded-lg border border-slate-800 bg-slate-900/70 p-2">
+                        <p className="text-[9px] uppercase tracking-wide text-slate-500">{label}</p>
+                        <p className="mt-0.5 text-xs font-bold text-slate-100 font-mono">{value}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-3 grid gap-2 border-t border-slate-800 pt-3 text-[10px]">
+                    <div>
+                      <p className="font-bold uppercase tracking-wide text-emerald-300">Advantages</p>
+                      <ul className="mt-1 space-y-0.5 text-slate-300">
+                        {scenario.advantages.map((item) => <li key={item}>✓ {item}</li>)}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="font-bold uppercase tracking-wide text-rose-300">Trade-offs</p>
+                      <ul className="mt-1 space-y-0.5 text-slate-400">
+                        {scenario.tradeoffs.map((item) => <li key={item}>⚠ {item}</li>)}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  aria-pressed={isSelected}
+                  onClick={() => setSelectedScenarioId(scenario.id)}
+                  className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold transition cursor-pointer ${
+                    isSelected
+                      ? "bg-cyan-400 text-slate-950 font-black shadow-md shadow-cyan-400/25"
+                      : "border border-slate-700 bg-slate-900 text-slate-200 hover:border-cyan-400/50"
+                  }`}
+                >
+                  {isSelected && <CheckCircle2 className="h-4 w-4" />}
+                  {isSelected ? "Comparing this scenario" : "Select & compare scenario"}
+                </button>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── Comprehensive Before vs After Urban Transformation Section ── */}
+      <CityTransformation
+        transformation={transformation}
+        title={`BEFORE vs AFTER · ${selectedScenario.name.toUpperCase()} EVALUATION`}
+      />
     </div>
   );
 };
