@@ -352,7 +352,7 @@ export default function LandingPage() {
         <nav className="lp-nav" aria-label="Main navigation">
           <a href="#roadmap">Roadmap</a>
           <a href="#platform">Platform</a>
-          <a href="#activity">Live activity</a>
+          <a href="#activity">Live activity</a>                 <Link to="/login" className="nav-link">User sign in</Link>                 <Link to="/admin-login" className="nav-link">Admin</Link>
         </nav>
       </header>
       <section className="lp-hero" aria-labelledby="lp-title">
